@@ -1,0 +1,27 @@
+﻿# Базовый образ для выполнения приложения
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
+WORKDIR /app
+EXPOSE 80
+
+# Образ SDK для сборки приложения
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+WORKDIR /src
+
+# Копируем файлы проекта в контейнер
+COPY ["src/InnoShop.Services.AuthAPI/InnoShop.Services.AuthAPI.csproj", "InnoShop.Services.AuthAPI/"]
+RUN dotnet restore "InnoShop.Services.AuthAPI/InnoShop.Services.AuthAPI.csproj"
+
+# Копируем оставшуюся часть кода и собираем приложение
+COPY . .
+WORKDIR "/src/InnoShop.Services.AuthAPI"
+RUN dotnet build "InnoShop.Services.AuthAPI.csproj" -c Release -o /app/build
+
+# Публикуем приложение
+FROM build AS publish
+RUN dotnet publish "InnoShop.Services.AuthAPI.csproj" -c Release -o /app/publish
+
+# Финальный этап — копируем опубликованные файлы и запускаем приложение
+FROM base AS final
+WORKDIR /app
+COPY --from=publish /app/publish .
+ENTRYPOINT ["dotnet", "InnoShop.Services.AuthAPI.dll"]

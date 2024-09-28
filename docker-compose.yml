@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  # Auth API service
+  authapi:
+    build:
+      context: .
+      dockerfile: ./InnoShop.Services.AuthAPI/Dockerfile
+    ports:
+      - "8080:8080"
+    networks:
+      - innoshop-network
+    environment:
+      ASPNETCORE_URLS: http://+:8080
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__DockerConnection: "Server=innoshop-master-db-1;Database=InnoShop_AuthAPI;User Id=sa;Password=${DB_PASSWORD};TrustServerCertificate=True;Integrated Security=False;Connection Timeout=30;"
+        
+    depends_on:
+      - db
+
+  # Product API service
+  productapi:
+    build:
+      context: .
+      dockerfile: ./InnoShop.Services.ProductAPI/Dockerfile
+    ports:
+      - "8082:8082"
+    networks:
+      - innoshop-network
+    environment:
+      ASPNETCORE_URLS: http://+:8082
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__DockerConnection: "Server=innoshop-master-db-1;Database=InnoShop_ProductAPI;User Id=sa;Password=${DB_PASSWORD};TrustServerCertificate=True;Integrated Security=False;Connection Timeout=30;"
+    depends_on:
+        - db
+
+  # SQL Server Database
+  db:
+    image: "mcr.microsoft.com/mssql/server:2019-latest"
+    environment:
+      SA_PASSWORD: "${DB_PASSWORD}"
+      ACCEPT_EULA: "Y"
+      MSSQL_TCP_COMPRESSION: "NO"
+    ports:
+      - "1433:1433"
+    networks:
+      - innoshop-network
+    volumes:
+      - db_data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD", "/opt/mssql-tools/bin/sqlcmd", "-U", "sa", "-P", "${DB_PASSWORD}", "-Q", "SELECT 1"]
+      interval: 10s
+      retries: 5
+
+networks:
+  innoshop-network:
+    driver: bridge
+
+volumes:
+  db_data:
