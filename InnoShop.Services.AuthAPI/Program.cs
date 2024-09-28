@@ -31,9 +31,8 @@ namespace InnoShop.Services.AuthAPI
                 .AddEnvironmentVariables();
 
             var environment = builder.Environment.EnvironmentName;
-            string connectionString = builder.Configuration.GetConnectionString("DockerConnection");
-            //string connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-
+            //string connectionString = builder.Configuration.GetConnectionString("DockerConnection");
+            string connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
             if (environment == "Test")
             {
