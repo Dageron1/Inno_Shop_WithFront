@@ -28,6 +28,8 @@ namespace InnoShop.Services.AuthAPI.Controllers
         }
 
         [HttpPost("users")]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
         public async Task<ActionResult<ResponseDto>> Register([FromBody] RegistrationRequestDto requestModel) 
         {
             var emailMessageBuilder = CreateEmailConfirmationMessageBuilder();
@@ -50,6 +52,7 @@ namespace InnoShop.Services.AuthAPI.Controllers
         }
 
         [HttpPost("users/resend-email-confirmation")]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<ResponseDto>> SendEmailConfirmation([FromBody] EmailDto email) 
         {
             var emailMessageBuilder = CreateEmailConfirmationMessageBuilder();
@@ -67,6 +70,7 @@ namespace InnoShop.Services.AuthAPI.Controllers
         }
 
         [HttpGet("users/confirm-email")]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<ResponseDto>> ConfirmEmail(string token)
         {
             var authServiceResult = await _authService.ConfirmEmailAsync(token);
@@ -105,6 +109,8 @@ namespace InnoShop.Services.AuthAPI.Controllers
 
         [Authorize(Roles = Role.Admin)]
         [HttpPost("users/{id}/roles")]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
         public async Task<ActionResult<ResponseDto>> AddRoleToUser(Guid id, [FromBody] AddRoleRequestDto requestModel) 
         {
             var authServiceResult = await _authService.AssignRole(id.ToString(), requestModel.Role.ToUpper());
@@ -125,6 +131,7 @@ namespace InnoShop.Services.AuthAPI.Controllers
         }
 
         [HttpPost("users/password/forgot")]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<ResponseDto>> ForgotPassword([FromBody] EmailDto model) 
         {
             var authServiceResult = await _authService.GeneratePasswordResetTokenAsync(model.Email);
@@ -140,6 +147,7 @@ namespace InnoShop.Services.AuthAPI.Controllers
         }
 
         [HttpPost("users/password/reset")]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<ResponseDto>> ResetPassword([FromBody] ResetPasswordRequestDto model) 
         {
             if (model == null || string.IsNullOrEmpty(model.Token) || string.IsNullOrEmpty(model.NewPassword))
@@ -161,6 +169,8 @@ namespace InnoShop.Services.AuthAPI.Controllers
 
         [Authorize]
         [HttpPut("users/{userId}")]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<ActionResult<ResponseDto>> UpdateUser(Guid userId, [FromBody] UpdateUserDto model) 
         {
             var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -183,6 +193,7 @@ namespace InnoShop.Services.AuthAPI.Controllers
 
         [Authorize(Roles = Role.Admin)]
         [HttpGet("users/paginated")]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<ResponseDto>> GetUsersWithPagination([FromQuery] PaginationParams paginationParams) 
         {
             var authServiceResult = await _authService.GetUsersWithPaginationAsync(paginationParams);
@@ -199,6 +210,7 @@ namespace InnoShop.Services.AuthAPI.Controllers
 
         [Authorize(Roles = Role.Admin)]
         [HttpPost("users/by-email")]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<ResponseDto>> GetUserByEmail([FromBody] EmailDto email) 
         {
             var authServiceResult = await _authService.GetUserByEmailAsync(email.Email);
@@ -215,6 +227,8 @@ namespace InnoShop.Services.AuthAPI.Controllers
 
         [Authorize(Roles = Role.Admin)]
         [HttpDelete("users/{userId}")]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
         public async Task<ActionResult<ResponseDto>> DeleteUser(Guid userId) 
         {
             var authServiceResult = await _authService.DeleteUserAsync(userId.ToString());

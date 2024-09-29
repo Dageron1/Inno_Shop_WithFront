@@ -30,6 +30,7 @@ namespace InnoShop.Services.ProductAPI.Controllers
         }
 
         [HttpGet("products")]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<ResponseDto>> Get()
         {
             var products = await _productService.GetAllAsync();
@@ -48,8 +49,8 @@ namespace InnoShop.Services.ProductAPI.Controllers
         }
 
         [HttpGet]
-        // Without this API cant differentiate this two enpoints with the same name. Will be error 500
         [Route("products/{id:int}")]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<ResponseDto>> Get(int id)
         {
             var product = await _productService.GetById(id);
@@ -67,6 +68,7 @@ namespace InnoShop.Services.ProductAPI.Controllers
 
         [HttpGet]
         [Route("products/by-name/{name}")]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<ResponseDto>> GetByName(string name)
         {
             var product = await _productService.GetByName(name);
@@ -85,6 +87,7 @@ namespace InnoShop.Services.ProductAPI.Controllers
 
         [HttpGet]
         [Route("products/category/{category}")]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<ResponseDto>> GetByCategory(string category)
         {
             var products = await _productService.GetByCategory(category);
@@ -103,6 +106,7 @@ namespace InnoShop.Services.ProductAPI.Controllers
 
         [Authorize]
         [HttpPost("products/")]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<ResponseDto>> Post([FromBody] ProductDto productDto)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -119,6 +123,9 @@ namespace InnoShop.Services.ProductAPI.Controllers
 
         [Authorize]
         [HttpPut("products/{id}")]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<ResponseDto>> Put(int id, [FromBody] ProductDto productDto)
         {
             if (id != productDto.ProductId)
@@ -166,6 +173,8 @@ namespace InnoShop.Services.ProductAPI.Controllers
         [HttpDelete]
         [Route("products/{id:int}")]
         [Authorize]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<ResponseDto>> Delete(int id)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -178,7 +187,6 @@ namespace InnoShop.Services.ProductAPI.Controllers
                 _response.Message = "Product not found.";
                 return NotFound(_response);
             }
-
             if (User.IsInRole("ADMIN") || productFromDbDto.CreatedByUserId == userId)
             {
                 await _productService.DeleteAsync(id);
