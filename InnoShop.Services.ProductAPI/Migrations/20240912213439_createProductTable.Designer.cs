@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace InnoShop.Services.ProductAPI.Migrations
 {
-    [DbContext(typeof(AppDbContext))]
+    [DbContext(typeof(ProductDbContext))]
     [Migration("20240912213439_createProductTable")]
     partial class createProductTable
     {

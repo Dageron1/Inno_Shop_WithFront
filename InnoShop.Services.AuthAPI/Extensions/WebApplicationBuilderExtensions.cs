@@ -32,7 +32,7 @@ namespace InnoShop.Services.AuthAPI.Extensions
                     ValidateAudience = true
                 };
             });
-            
+
             return builder;
         }
     }

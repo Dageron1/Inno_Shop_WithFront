@@ -24,25 +24,14 @@ namespace InnoShop.Services.AuthAPI
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            builder.Configuration
-                .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-                .AddJsonFile($"appsettings.Development.json", optional: true)
-                .AddEnvironmentVariables();
-
-            var environment = builder.Environment.EnvironmentName;
             //string connectionString = builder.Configuration.GetConnectionString("DockerConnection");
             string connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
-            if (environment == "Test")
-            {
-                connectionString = builder.Configuration.GetConnectionString("TestConnection");
-            }
-
-            builder.Services.AddDbContext<AppDbContext>(options =>
+            builder.Services.AddDbContext<AuthDbContext>(options =>
             {
                 options.UseSqlServer(connectionString);
             });
+            builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 
             builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("ApiSettings:JwtOptions"));
             builder.Services.Configure<DataProtectionTokenProviderOptions>(options =>
@@ -50,7 +39,7 @@ namespace InnoShop.Services.AuthAPI
                 options.TokenLifespan = TimeSpan.FromMinutes(60);
             });
             // bridge between ef and .net identity
-            builder.Services.AddIdentity<ApplicationUser, IdentityRole>().AddEntityFrameworkStores<AppDbContext>().AddDefaultTokenProviders();
+            builder.Services.AddIdentity<ApplicationUser, IdentityRole>().AddEntityFrameworkStores<AuthDbContext>().AddDefaultTokenProviders();
             builder.Services.AddControllers(options =>
             {
                 options.Filters.Add<ExceptionFilter>();
@@ -114,7 +103,7 @@ namespace InnoShop.Services.AuthAPI
             {
                 using (var scope = app.Services.CreateScope())
                 {
-                    var _db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                    var _db = scope.ServiceProvider.GetRequiredService<AuthDbContext>();
 
                     if (_db.Database.GetPendingMigrations().Count() > 0)
                     {

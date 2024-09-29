@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace InnoShop.Services.ProductAPI.Migrations
 {
-    [DbContext(typeof(AppDbContext))]
+    [DbContext(typeof(ProductDbContext))]
     [Migration("20240927180654_RemoveSeededProducts")]
     partial class RemoveSeededProducts
     {

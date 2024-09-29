@@ -1,6 +1,7 @@
 ﻿using Azure;
 using InnoShop.Services.AuthAPI.Models.Dto;
 using InnoShop.Services.AuthAPI.Services.Interfaces;
+using InnoShop.Services.AuthAPI.Utility;
 using InnoShop.Services.AuthAPI.Validators;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -81,6 +82,8 @@ namespace InnoShop.Services.AuthAPI.Controllers
         }
 
         [HttpPost("sessions")]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<ActionResult<ResponseDto>> Login([FromBody] LoginRequestDto model) 
         {
             var authServiceResult = await _authService.Login(model);
@@ -100,7 +103,7 @@ namespace InnoShop.Services.AuthAPI.Controllers
             return BadRequest(responseDto);
         }
 
-        [Authorize(Roles = "ADMIN")]
+        [Authorize(Roles = Role.Admin)]
         [HttpPost("users/{id}/roles")]
         public async Task<ActionResult<ResponseDto>> AddRoleToUser(Guid id, [FromBody] AddRoleRequestDto requestModel) 
         {
@@ -162,7 +165,7 @@ namespace InnoShop.Services.AuthAPI.Controllers
         {
             var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-            if (User.IsInRole("ADMIN") || currentUserId == userId.ToString())
+            if (User.IsInRole(Role.Admin) || currentUserId == userId.ToString())
             {
                 var authServiceResult = await _authService.UpdateUserAsync(userId.ToString(), model);
 
@@ -178,7 +181,7 @@ namespace InnoShop.Services.AuthAPI.Controllers
             return Forbid();
         }
 
-        [Authorize(Roles = "ADMIN")]
+        [Authorize(Roles = Role.Admin)]
         [HttpGet("users/paginated")]
         public async Task<ActionResult<ResponseDto>> GetUsersWithPagination([FromQuery] PaginationParams paginationParams) 
         {
@@ -194,7 +197,7 @@ namespace InnoShop.Services.AuthAPI.Controllers
             return BadRequest(responseDto);
         }
 
-        [Authorize(Roles = "ADMIN")]
+        [Authorize(Roles = Role.Admin)]
         [HttpPost("users/by-email")]
         public async Task<ActionResult<ResponseDto>> GetUserByEmail([FromBody] EmailDto email) 
         {
@@ -210,7 +213,7 @@ namespace InnoShop.Services.AuthAPI.Controllers
             return BadRequest(responseDto);
         }
 
-        [Authorize(Roles = "ADMIN")]
+        [Authorize(Roles = Role.Admin)]
         [HttpDelete("users/{userId}")]
         public async Task<ActionResult<ResponseDto>> DeleteUser(Guid userId) 
         {

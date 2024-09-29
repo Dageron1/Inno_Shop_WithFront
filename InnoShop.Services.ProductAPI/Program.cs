@@ -1,4 +1,3 @@
-
 using AutoMapper;
 using FluentValidation;
 using FluentValidation.AspNetCore;
@@ -24,13 +23,7 @@ namespace InnoShop.Services.ProductAPI
             //string connectionString = builder.Configuration.GetConnectionString("DockerConnection");
             string connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
-            if (environment == "Test")
-            {
-                connectionString = builder.Configuration.GetConnectionString("TestConnection");
-            }
-
-            // Add services to the container.
-            builder.Services.AddDbContext<AppDbContext>(options =>
+            builder.Services.AddDbContext<ProductDbContext>(options =>
             {
                 options.UseSqlServer(connectionString);
             });
@@ -102,7 +95,7 @@ namespace InnoShop.Services.ProductAPI
             {
 
                 using var scope = app.Services.CreateScope();
-                var _db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                var _db = scope.ServiceProvider.GetRequiredService<ProductDbContext>();
 
                 if (_db.Database.GetPendingMigrations().Count() > 0)
                 {

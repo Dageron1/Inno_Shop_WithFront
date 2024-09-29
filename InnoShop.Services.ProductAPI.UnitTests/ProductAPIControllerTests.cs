@@ -32,8 +32,6 @@ namespace InnoShop.Services.ProductAPI.UnitTests
         [SetUp]
         public void SetUp()
         {
-
-            // Настройка AutoMapper (для простоты, используем реальные маппинги)
             var configuration = new MapperConfiguration(cfg =>
             {
                 cfg.CreateMap<Product, ProductDto>();
@@ -41,7 +39,6 @@ namespace InnoShop.Services.ProductAPI.UnitTests
             });
             _mapper = configuration.CreateMapper();
 
-            // Создание сервиса
             _productServiceMock = new Mock<IProductService>();
             _productAPIController = new ProductAPIController(_productServiceMock.Object);
         }

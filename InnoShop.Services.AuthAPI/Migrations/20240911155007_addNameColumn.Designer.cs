@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace InnoShop.Services.AuthAPI.Migrations
 {
-    [DbContext(typeof(AppDbContext))]
+    [DbContext(typeof(AuthDbContext))]
     [Migration("20240911155007_addNameColumn")]
     partial class addNameColumn
     {

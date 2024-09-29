@@ -9,10 +9,10 @@ namespace InnoShop.Services.ProductAPI.Services
 {
     public class ProductService : IProductService
     {
-        private readonly AppDbContext _db;
+        private readonly ProductDbContext _db;
         private IMapper _mapper;
 
-        public ProductService(AppDbContext db, IMapper mapper)
+        public ProductService(ProductDbContext db, IMapper mapper)
         {
             _db = db;
             _mapper = mapper;

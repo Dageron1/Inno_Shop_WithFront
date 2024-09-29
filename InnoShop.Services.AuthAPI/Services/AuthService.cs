@@ -323,7 +323,7 @@ namespace InnoShop.Services.AuthAPI.Services
                 .Take(paginationParams.PageSize)
                 .Select(user => new UserDto
                 {
-                    ID = user.Id,
+                    Id = user.Id,
                     Name = user.Name,
                     Email = user.Email,
                     PhoneNumber = user.PhoneNumber,
@@ -358,7 +358,7 @@ namespace InnoShop.Services.AuthAPI.Services
 
             var userDto = new UserDto
             {
-                ID = user.Id,
+                Id = user.Id,
                 Name = user.Name,
                 Email = user.Email,
                 PhoneNumber = user.PhoneNumber
@@ -367,7 +367,7 @@ namespace InnoShop.Services.AuthAPI.Services
             return new AuthServiceResult
             {
                 ErrorCode = AuthErrorCode.Success,
-                Result = userDto
+                Result = user
             };
         }
 

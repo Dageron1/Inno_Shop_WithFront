@@ -1143,7 +1143,7 @@ namespace InnoShop.Services.AuthAPI.UnitTests.Services
                 ErrorCode = AuthErrorCode.Success,
                 Result = new UserDto
                 {
-                    ID = user.Id,
+                    Id = user.Id,
                     Name = user.Name,
                     Email = user.Email,
                     PhoneNumber = user.PhoneNumber

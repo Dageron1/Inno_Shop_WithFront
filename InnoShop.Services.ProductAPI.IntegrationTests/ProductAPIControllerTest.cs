@@ -17,54 +17,50 @@ using InnoShop.Services.ProductAPI.Models.Dto;
 using Microsoft.AspNetCore.Hosting;
 using Moq;
 using InnoShop.Services.AuthAPI.Models;
-using InnoShop.Services.AuthAPI.Services.Interfaces;
 using System.Net.Http.Headers;
-using InnoShop.Services.AuthAPI.Services;
 using System.IdentityModel.Tokens.Jwt;
+using InnoShop.Services.ProductAPI;
+using Microsoft.Extensions.Configuration;
+using System.Security.Claims;
+using Microsoft.IdentityModel.Tokens;
 
 namespace InnoShop.Services.ProductAPI.IntegrationTests
 {
     [TestFixture]
     public class ProductAPIControllerTest
     {
-        private WebApplicationFactory<InnoShop.Services.ProductAPI.Program> _productApiFactory;
-        private WebApplicationFactory<InnoShop.Services.AuthAPI.Program> _authApiFactory;
+        
+        private WebApplicationFactory<Program> _productApiFactory;
         private HttpClient _productApiClient;
-        private HttpClient _authApiClient;
-        private AppDbContext _appDbContext;
+        private ProductDbContext _productDbContext;
 
         [SetUp]
         public async Task SetUp()
         {
-            _productApiFactory = new WebApplicationFactory<InnoShop.Services.ProductAPI.Program>()
+            _productApiFactory = new WebApplicationFactory<Program>()
                 .WithWebHostBuilder(builder =>
                 {
                     builder.UseEnvironment("Test");
 
                     builder.ConfigureServices(services =>
                     {
-
-                        services.AddDbContext<AppDbContext>(options =>
+                        services.AddDbContext<ProductDbContext>(options =>
                         {
-                            options.UseSqlServer("Server=(localdb)\\mssqllocaldb;Database=InnoShop_Product_Test;Trusted_Connection=True;TrustServerCertificate=True");
+                            options.UseSqlServer();
                         });
 
                         var serviceProvider = services.BuildServiceProvider();
                         using (var scope = serviceProvider.CreateScope())
                         {
-                            var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-
+                            var dbContext = scope.ServiceProvider.GetRequiredService<ProductDbContext>();
+                           
                             dbContext.Database.EnsureDeleted();
                             dbContext.Database.Migrate();
-
                         }
                     });
                 });
 
-            _authApiFactory = new WebApplicationFactory<AuthAPI.Program>();
-
-            _productApiClient = _productApiFactory.CreateClient();
-            _authApiClient = _authApiFactory.CreateClient();
+            _productApiClient = _productApiFactory.CreateClient();   
         }
 
         [TearDown]
@@ -72,14 +68,11 @@ namespace InnoShop.Services.ProductAPI.IntegrationTests
         {
             using (var scope = _productApiFactory.Services.CreateScope())
             {
-                _appDbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                _productDbContext = scope.ServiceProvider.GetRequiredService<ProductDbContext>();
 
-                _appDbContext.Products.RemoveRange(_appDbContext.Products);
-                await _appDbContext.SaveChangesAsync();
+                _productDbContext.Products.RemoveRange(_productDbContext.Products);
+                await _productDbContext.SaveChangesAsync();
             }
-
-            _authApiClient.Dispose();
-            _authApiFactory.Dispose();
             _productApiFactory.Dispose();
             _productApiClient.Dispose();
         }
@@ -101,42 +94,72 @@ namespace InnoShop.Services.ProductAPI.IntegrationTests
 
         public async Task<string> GetJwtTokenForAdminUserAsync()
         {
-            var loginRequest = new
+            var tokenHandler = new JwtSecurityTokenHandler();
+
+            var key = Encoding.ASCII.GetBytes("Add your secret here and change in the future.");
+
+            var adminUser = new ApplicationUser
             {
+                UserName = "Admin@gmail.com",
+                Name = "Admin",
                 Email = "Admin@gmail.com",
-                Password = "Admin123*"
+                EmailConfirmed = true,
             };
 
-            var jsonContent = JsonConvert.SerializeObject(loginRequest);
-            var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+            var claimsList = new List<Claim>
+            {
+                new Claim(JwtRegisteredClaimNames.Email, adminUser.Email),
+                new Claim(JwtRegisteredClaimNames.Sub, adminUser.Id),
+                new Claim(JwtRegisteredClaimNames.Name, adminUser.UserName),
+                new Claim(ClaimTypes.Role, "ADMIN"),
+            };
 
-            var response = await _authApiClient.PostAsync("/api/auth/sessions", content);
-            response.EnsureSuccessStatusCode();
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Audience = "inno-client",
+                Issuer = "inno-shop-api",
+                Subject = new ClaimsIdentity(claimsList),
+                Expires = DateTime.UtcNow.AddDays(7),
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+            };
 
-            var responseString = await response.Content.ReadAsStringAsync();
-            var responseDto = JsonConvert.DeserializeObject<AuthAPI.Models.Dto.ResponseDto>(responseString);
-
-            return responseDto.Token;
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+            return tokenHandler.WriteToken(token);
         }
 
         public async Task<string> GetJwtTokenForRegularUserAsync()
         {
-            var loginRequest = new
+            var tokenHandler = new JwtSecurityTokenHandler();
+
+            var key = Encoding.ASCII.GetBytes("Add your secret here and change in the future.");
+
+            var customerUser = new ApplicationUser
             {
+                UserName = "Customer@gmail.com",
+                Name = "Customer",
                 Email = "Customer@gmail.com",
-                Password = "Customer123*"
+                EmailConfirmed = true,
             };
 
-            var jsonContent = JsonConvert.SerializeObject(loginRequest);
-            var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+            var claimsList = new List<Claim>
+            {
+                new Claim(JwtRegisteredClaimNames.Email, customerUser.Email),
+                new Claim(JwtRegisteredClaimNames.Sub, customerUser.Id),
+                new Claim(JwtRegisteredClaimNames.Name, customerUser.UserName),
+                new Claim(ClaimTypes.Role, "USER"),
+            };
 
-            var response = await _authApiClient.PostAsync("/api/auth/sessions", content);
-            response.EnsureSuccessStatusCode();
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Audience = "inno-client",
+                Issuer = "inno-shop-api",
+                Subject = new ClaimsIdentity(claimsList),
+                Expires = DateTime.UtcNow.AddDays(7),
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+            };
 
-            var responseString = await response.Content.ReadAsStringAsync();
-            var responseDto = JsonConvert.DeserializeObject<AuthAPI.Models.Dto.ResponseDto>(responseString);
-
-            return responseDto.Token;
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+            return tokenHandler.WriteToken(token);
         }
 
         [Test]
@@ -145,7 +168,7 @@ namespace InnoShop.Services.ProductAPI.IntegrationTests
             using (var scope = _productApiFactory.Services.CreateScope())
             {
                 // Arrange
-                var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                var dbContext = scope.ServiceProvider.GetRequiredService<ProductDbContext>();
                 var client = _productApiClient;
 
                 var product = new Product
@@ -181,15 +204,15 @@ namespace InnoShop.Services.ProductAPI.IntegrationTests
         [Test]
         public async Task Get_ShouldReturnNotFoundWithResponseDto_WhenNoProductsExist()
         {
-            // Act
             using (var scope = _productApiFactory.Services.CreateScope())
             {
                 // Arrange
-                var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                var dbContext = scope.ServiceProvider.GetRequiredService<ProductDbContext>();
 
                 dbContext.Products.RemoveRange(dbContext.Products);
                 await dbContext.SaveChangesAsync();
             }
+            // Act
             var response = await _productApiClient.GetAsync("/api/products");
 
             // Assert
@@ -208,9 +231,8 @@ namespace InnoShop.Services.ProductAPI.IntegrationTests
             using (var scope = _productApiFactory.Services.CreateScope())
             {
                 // Arrange
-                var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                var dbContext = scope.ServiceProvider.GetRequiredService<ProductDbContext>();
 
-                // Создаем тестовый продукт
                 var newProduct = new Product
                 {
                     Name = "Test Product",
@@ -248,7 +270,7 @@ namespace InnoShop.Services.ProductAPI.IntegrationTests
             using (var scope = _productApiFactory.Services.CreateScope())
             {
                 // Arrange
-                var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                var dbContext = scope.ServiceProvider.GetRequiredService<ProductDbContext>();
 
                 dbContext.Products.RemoveRange(dbContext.Products);
                 await dbContext.SaveChangesAsync();
@@ -272,7 +294,8 @@ namespace InnoShop.Services.ProductAPI.IntegrationTests
         {
             using (var scope = _productApiFactory.Services.CreateScope())
             {
-                var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                // Arrange
+                var dbContext = scope.ServiceProvider.GetRequiredService<ProductDbContext>();
 
                 var newProduct = new Product
                 {
@@ -336,7 +359,8 @@ namespace InnoShop.Services.ProductAPI.IntegrationTests
         {
             using (var scope = _productApiFactory.Services.CreateScope())
             {
-                var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                // Arrange
+                var dbContext = scope.ServiceProvider.GetRequiredService<ProductDbContext>();
 
                 var productList = new List<Product>()
                 {
@@ -435,7 +459,7 @@ namespace InnoShop.Services.ProductAPI.IntegrationTests
 
                 using (var newScope = _productApiFactory.Services.CreateScope())
                 {
-                    var dbContext = newScope.ServiceProvider.GetRequiredService<AppDbContext>();
+                    var dbContext = newScope.ServiceProvider.GetRequiredService<ProductDbContext>();
                     var addedProduct = await dbContext.Products
                         .FirstOrDefaultAsync(p => p.Name == "New Test Product");
                     
@@ -481,8 +505,9 @@ namespace InnoShop.Services.ProductAPI.IntegrationTests
         {
             using (var scope = _productApiFactory.Services.CreateScope())
             {
-                var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
                 // Arrange
+                var dbContext = scope.ServiceProvider.GetRequiredService<ProductDbContext>();
+                
                 var token = await GetJwtTokenForAdminUserAsync();
 
                 var client = _productApiClient;
@@ -528,7 +553,7 @@ namespace InnoShop.Services.ProductAPI.IntegrationTests
 
                 using (var newScope = _productApiFactory.Services.CreateScope())
                 {
-                    var dbContextNEW = newScope.ServiceProvider.GetRequiredService<AppDbContext>();
+                    var dbContextNEW = newScope.ServiceProvider.GetRequiredService<ProductDbContext>();
                     var addedProduct = await dbContextNEW.Products
                         .FirstOrDefaultAsync(p => p.Name == "Updated Product");
 
@@ -542,8 +567,9 @@ namespace InnoShop.Services.ProductAPI.IntegrationTests
         {
             using (var scope = _productApiFactory.Services.CreateScope())
             {
-                var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
                 // Arrange
+                var dbContext = scope.ServiceProvider.GetRequiredService<ProductDbContext>();
+                
                 var token = await GetJwtTokenForRegularUserAsync();
                 var userId = await GetUserIdFromToken(token);
 
@@ -590,7 +616,7 @@ namespace InnoShop.Services.ProductAPI.IntegrationTests
 
                 using (var newScope = _productApiFactory.Services.CreateScope())
                 {
-                    var dbContextNEW = newScope.ServiceProvider.GetRequiredService<AppDbContext>();
+                    var dbContextNEW = newScope.ServiceProvider.GetRequiredService<ProductDbContext>();
                     var addedProduct = await dbContextNEW.Products
                         .FirstOrDefaultAsync(p => p.Name == "Updated Product");
 
@@ -640,11 +666,12 @@ namespace InnoShop.Services.ProductAPI.IntegrationTests
         [Test]
         public async Task Put_ShouldReturnBadRequest_WhenUrlIdDoesNotMatchBodyId()
         {
+            var token = await GetJwtTokenForAdminUserAsync();
+
             using (var scope = _productApiFactory.Services.CreateScope())
             {
-                var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
                 // Arrange
-                var token = await GetJwtTokenForAdminUserAsync();
+                var dbContext = scope.ServiceProvider.GetRequiredService<ProductDbContext>();
 
                 var client = _productApiClient;
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
@@ -681,8 +708,9 @@ namespace InnoShop.Services.ProductAPI.IntegrationTests
         {
             using (var scope = _productApiFactory.Services.CreateScope())
             {
-                var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
                 // Arrange
+                var dbContext = scope.ServiceProvider.GetRequiredService<ProductDbContext>();
+                
                 var token = await GetJwtTokenForRegularUserAsync();
 
                 var product = new Product
@@ -731,10 +759,10 @@ namespace InnoShop.Services.ProductAPI.IntegrationTests
         [Test]
         public async Task Delete_ShouldReturnOkWithResponseDto_WhenUserIsOwnerProductIsDeletedSuccessfully()
         {
-            // Arrange
             using (var scope = _productApiFactory.Services.CreateScope())
             {
-                var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                // Arrange
+                var dbContext = scope.ServiceProvider.GetRequiredService<ProductDbContext>();
 
                 var token = await GetJwtTokenForRegularUserAsync();
                 var userId = await GetUserIdFromToken(token);
@@ -768,7 +796,7 @@ namespace InnoShop.Services.ProductAPI.IntegrationTests
 
                 using (var newScope = _productApiFactory.Services.CreateScope())
                 {
-                    var dbContextNEW = newScope.ServiceProvider.GetRequiredService<AppDbContext>();
+                    var dbContextNEW = newScope.ServiceProvider.GetRequiredService<ProductDbContext>();
 
                     var deletedProduct = await dbContextNEW.Products.FindAsync(product.ProductId);
                     deletedProduct.Should().BeNull();
@@ -779,9 +807,9 @@ namespace InnoShop.Services.ProductAPI.IntegrationTests
         [Test]
         public async Task Delete_ShouldReturnNotFoundWithResponseDto_WhenProductDoesNotExist()
         {
-            // Arrange
             using (var scope = _productApiFactory.Services.CreateScope())
             {
+                // Arrange
                 var nonExistentProductId = 999;
                 var token = await GetJwtTokenForRegularUserAsync();
 
@@ -803,11 +831,11 @@ namespace InnoShop.Services.ProductAPI.IntegrationTests
 
         [Test]
         public async Task Delete_ShouldReturnForbiddenWithResponseDto_WhenUserNotOwner()
-        {
-            // Arrange
+        { 
             using (var scope = _productApiFactory.Services.CreateScope())
             {
-                var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                // Arrange
+                var dbContext = scope.ServiceProvider.GetRequiredService<ProductDbContext>();
 
                 var token = await GetJwtTokenForRegularUserAsync();
                 var userId = await GetUserIdFromToken(token);
@@ -842,7 +870,7 @@ namespace InnoShop.Services.ProductAPI.IntegrationTests
 
                 using (var newScope = _productApiFactory.Services.CreateScope())
                 {
-                    var dbContextNEW = newScope.ServiceProvider.GetRequiredService<AppDbContext>();
+                    var dbContextNEW = newScope.ServiceProvider.GetRequiredService<ProductDbContext>();
 
                     var notDeletedProduct = await dbContextNEW.Products.FindAsync(product.ProductId);
                     notDeletedProduct.Should().BeEquivalentTo(product);

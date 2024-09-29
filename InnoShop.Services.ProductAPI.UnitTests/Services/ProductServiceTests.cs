@@ -24,18 +24,18 @@ namespace InnoShop.Services.ProductAPI.UnitTests.Services
     [TestFixture]
     public class ProductServiceTests
     {
-        private AppDbContext _dbContext;
+        private ProductDbContext _dbContext;
         private IMapper _mapper;
         private ProductService _productService;
 
         [SetUp]
         public void SetUp()
         {
-            var options = new DbContextOptionsBuilder<AppDbContext>()
+            var options = new DbContextOptionsBuilder<ProductDbContext>()
                 .UseInMemoryDatabase(databaseName: "TestDb")
                 .Options;
 
-            _dbContext = new AppDbContext(options);
+            _dbContext = new ProductDbContext(options);
             
             var configuration = new MapperConfiguration(cfg =>
             {

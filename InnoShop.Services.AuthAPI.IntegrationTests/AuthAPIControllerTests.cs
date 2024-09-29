@@ -24,13 +24,14 @@ using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Text;
 using System.Transactions;
+using InnoShop.Services.AuthAPI;
 
 namespace InnoShop.Services.AuthAPI.IntegrationTests
 {
     [TestFixture]
     public class AuthAPIControllerTests
     {
-        private WebApplicationFactory<InnoShop.Services.AuthAPI.Program> _factory;
+        private WebApplicationFactory<Program> _factory;
         private HttpClient _client;
         private UserManager<ApplicationUser> _userManager;
         private RoleManager<IdentityRole> _roleManager;
@@ -40,30 +41,27 @@ namespace InnoShop.Services.AuthAPI.IntegrationTests
         [SetUp]
         public void SetUp()
         {
-            _factory = new WebApplicationFactory<InnoShop.Services.AuthAPI.Program>()
-        .WithWebHostBuilder(builder =>
-        {
-            builder.UseEnvironment("Test");
-
-
-
-            builder.ConfigureServices(services =>
-            {
-                services.AddDbContext<AppDbContext>(options =>
+            _factory = new WebApplicationFactory<Program>()
+                .WithWebHostBuilder(builder =>
                 {
-                    options.UseSqlServer("Server=(localdb)\\mssqllocaldb;Database=InnoShop_Auth_Test;Trusted_Connection=True;TrustServerCertificate=True");
-                });
+                    builder.UseEnvironment("Test");
+
+                    builder.ConfigureServices(services =>
+                    {
+                        services.AddDbContext<AuthDbContext>(options =>
+                        {
+                            options.UseSqlServer();
+                        });
                 
-
-                var serviceProvider = services.BuildServiceProvider();
-                using (var scope = serviceProvider.CreateScope())
-                {
-                    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-                    dbContext.Database.EnsureDeleted();
-                    dbContext.Database.Migrate();
-                }
-            });
-        });
+                        var serviceProvider = services.BuildServiceProvider();
+                        using (var scope = serviceProvider.CreateScope())
+                        {
+                            var dbContext = scope.ServiceProvider.GetRequiredService<AuthDbContext>();
+                            dbContext.Database.EnsureDeleted();
+                            dbContext.Database.Migrate();
+                        }
+                    });
+                });
 
             _client = _factory.CreateClient();
         }
@@ -78,17 +76,10 @@ namespace InnoShop.Services.AuthAPI.IntegrationTests
                 _jwtTokenGenerator = scope.ServiceProvider.GetRequiredService<IJwtTokenGenerator>();
                 _emailSender = scope.ServiceProvider.GetRequiredService<IEmailSender>();
 
-                var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                var dbContext = scope.ServiceProvider.GetRequiredService<AuthDbContext>();
                 await dbContext.Database.EnsureDeletedAsync();
-                await dbContext.Database.MigrateAsync();
+                 await dbContext.Database.MigrateAsync();
             }
-
-            //var user = await _userManager.FindByEmailAsync("testuser12@example.com");
-
-            //if (user != null)
-            //{
-            //    await _userManager.DeleteAsync(user);
-            //}
 
             _factory.Dispose();
             _client.Dispose();
@@ -144,7 +135,7 @@ namespace InnoShop.Services.AuthAPI.IntegrationTests
                 Email = "invalid-email",
                 Password = "123",
                 Name = "",
-                PhoneNumber = "12345"
+                PhoneNumber = "123"
             };
 
             var jsonContent = JsonConvert.SerializeObject(requestModel);
@@ -183,6 +174,13 @@ namespace InnoShop.Services.AuthAPI.IntegrationTests
                 PhoneNumber = "+1234567890"
             };
 
+            var expectedResponse = new ResponseDto
+            {
+                IsSuccess = false,
+                Message = "User with this email already exists.",
+                Errors = new JArray { "User with this email already exists." }
+            };
+
             var jsonContent = JsonConvert.SerializeObject(requestModel);
             var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
@@ -194,18 +192,10 @@ namespace InnoShop.Services.AuthAPI.IntegrationTests
             secondResponse.StatusCode.Should().Be(HttpStatusCode.Conflict);
 
             var responseString = await secondResponse.Content.ReadAsStringAsync();
-            responseString.Should().Contain("\"isSuccess\":false");
-            responseString.Should().Contain("User with this email already exists.");
 
             var responseDto = JsonConvert.DeserializeObject<ResponseDto>(responseString.ToString());
 
-            responseDto.IsSuccess.Should().BeFalse();
-            responseDto.Errors.Should().NotBeNull();
-
-            var errorsArray = responseDto.Errors as JArray;
-            var errors = errorsArray?.Select(e => e.ToString()).ToList();
-
-            errors.Should().Contain("User with this email already exists.");
+            responseDto.Should().BeEquivalentTo(expectedResponse);
         }
 
         [Test]
@@ -354,15 +344,11 @@ namespace InnoShop.Services.AuthAPI.IntegrationTests
 
                 var validToken = jwtTokenGenerator.GenerateEmailConfirmationTokenAsync(user.Id, emailToken);
 
-                //var roles = await userManager.GetRolesAsync(user);
-
-                //var jwtToken = jwtTokenGenerator.GenerateToken(user, roles);
-
                 var expectedResponse = new ResponseDto
                 {
                     IsSuccess = false,
                     Message = "Email already confirmed.",
-                    Errors = new List<string> { "Email has already been confirmed." }
+                    Errors = new JArray { "Email has already been confirmed." }
                 };
 
                 // Act
@@ -373,11 +359,8 @@ namespace InnoShop.Services.AuthAPI.IntegrationTests
 
                 var responseString = await response.Content.ReadAsStringAsync();
                 var responseDto = JsonConvert.DeserializeObject<ResponseDto>(responseString);
-                responseDto.IsSuccess.Should().BeFalse();
-                var errorsArray = responseDto.Errors as JArray;
-                var errors = errorsArray?.Select(e => e.ToString()).ToList();
 
-                errors.Should().Contain("Email has already been confirmed.");
+                responseDto.Should().BeEquivalentTo(expectedResponse);
             }
         }
 
@@ -404,10 +387,6 @@ namespace InnoShop.Services.AuthAPI.IntegrationTests
                 var emailToken = "";
 
                 var invalidToken = jwtTokenGenerator.GenerateEmailConfirmationTokenAsync(user.Id, emailToken);
-
-                //var roles = await userManager.GetRolesAsync(user);
-
-                //var jwtToken = jwtTokenGenerator.GenerateToken(user, roles);
 
                 var expectedResponse = new ResponseDto
                 {
@@ -464,6 +443,7 @@ namespace InnoShop.Services.AuthAPI.IntegrationTests
 
                 var responseString = await response.Content.ReadAsStringAsync();
                 var responseDto = JsonConvert.DeserializeObject<ResponseDto>(responseString);
+
                 responseDto.Should().BeEquivalentTo(expectedResponse);
             }
         }
@@ -471,7 +451,6 @@ namespace InnoShop.Services.AuthAPI.IntegrationTests
         [Test]
         public async Task ConfirmEmail_ShouldReturnOkWithResponseDto_WhenEmailConfirmedAndJwtTokenGeneratedSuccessfully()
         {
-
             using (var scope = _factory.Services.CreateScope())
             {
                 // Arrange
@@ -511,7 +490,6 @@ namespace InnoShop.Services.AuthAPI.IntegrationTests
                 {
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("Add your secret here and change in the future.")),
-
                     ValidateIssuer = false,
                     ValidateAudience = false,
                     ValidateLifetime = true
@@ -541,11 +519,17 @@ namespace InnoShop.Services.AuthAPI.IntegrationTests
                     Name = "Test User"
                 };
 
-                // Создаем пользователя
                 await userManager.CreateAsync(user, "ValidPassword123*");
 
                 var emailToken = "fake-email-token";
                 var validToken = jwtTokenGenerator.GenerateEmailConfirmationTokenAsync(user.Id, emailToken);
+
+                var expectedResult = new ResponseDto
+                {
+                    IsSuccess = false,
+                    Message = "Invalid Token.",
+                    Errors = new JArray { "Invalid token." }
+                };
 
                 // Act
                 var response = await _client.GetAsync($"api/auth/users/confirm-email?token={validToken}");
@@ -556,14 +540,7 @@ namespace InnoShop.Services.AuthAPI.IntegrationTests
                 var responseString = await response.Content.ReadAsStringAsync();
                 var responseDto = JsonConvert.DeserializeObject<ResponseDto>(responseString);
 
-                responseDto.IsSuccess.Should().BeFalse();
-                responseDto.Message.Should().Be("Invalid Token.");
-                responseDto.Errors.Should().NotBeNull();
-
-                var errorsArray = responseDto.Errors as JArray;
-                var errors = errorsArray?.Select(e => e.ToString()).ToList();
-
-                errors.Should().Contain("Invalid token.");
+                responseDto.Should().BeEquivalentTo(expectedResult);
             }
         }
 
@@ -632,6 +609,12 @@ namespace InnoShop.Services.AuthAPI.IntegrationTests
                 var jsonContent = JsonConvert.SerializeObject(requestModel);
                 var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
+                var expectedResult = new ResponseDto
+                {
+                    IsSuccess = false,
+                    Message = "User not found."
+                };
+
                 // Act
                 var response = await _client.PostAsync("/api/auth/sessions", content);
 
@@ -640,8 +623,7 @@ namespace InnoShop.Services.AuthAPI.IntegrationTests
                 var responseString = await response.Content.ReadAsStringAsync();
                 var responseDto = JsonConvert.DeserializeObject<ResponseDto>(responseString);
 
-                responseDto.IsSuccess.Should().BeFalse();
-                responseDto.Message.Should().Contain("User not found.");
+                responseDto.Should().BeEquivalentTo(expectedResult);
             }
         }
 
@@ -667,6 +649,12 @@ namespace InnoShop.Services.AuthAPI.IntegrationTests
                 var jsonContent = JsonConvert.SerializeObject(requestModel);
                 var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
+                var expectedResult = new ResponseDto
+                {
+                    IsSuccess = false,
+                    Message = "Email not confirmed."
+                };
+
                 // Act
                 var response = await _client.PostAsync("/api/auth/sessions", content);
 
@@ -675,8 +663,7 @@ namespace InnoShop.Services.AuthAPI.IntegrationTests
                 var responseString = await response.Content.ReadAsStringAsync();
                 var responseDto = JsonConvert.DeserializeObject<ResponseDto>(responseString);
 
-                responseDto.IsSuccess.Should().BeFalse();
-                responseDto.Message.Should().Contain("Email not confirmed.");
+                responseDto.Should().BeEquivalentTo(expectedResult);
             }
         }
 
@@ -703,6 +690,12 @@ namespace InnoShop.Services.AuthAPI.IntegrationTests
                 var jsonContent = JsonConvert.SerializeObject(requestModel);
                 var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
+                var expectedResult = new ResponseDto
+                {
+                    IsSuccess = false,
+                    Message = "Invalid Email or Password."
+                };
+
                 // Act
                 var response = await _client.PostAsync("/api/auth/sessions", content);
 
@@ -711,9 +704,7 @@ namespace InnoShop.Services.AuthAPI.IntegrationTests
                 var responseString = await response.Content.ReadAsStringAsync();
                 var responseDto = JsonConvert.DeserializeObject<ResponseDto>(responseString);
 
-                responseDto.IsSuccess.Should().BeFalse();
-                responseDto.Message.Should().Contain("Invalid Email or Password.");
-
+                responseDto.Should().BeEquivalentTo(expectedResult);
             }
         }
 
@@ -749,6 +740,12 @@ namespace InnoShop.Services.AuthAPI.IntegrationTests
                 var jsonContent = JsonConvert.SerializeObject(requestModel);
                 var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
+                var expectedResult = new ResponseDto
+                {
+                    IsSuccess = true,
+                    Message = "Success.",
+                };
+
                 // Act
                 var response = await _client.PostAsync($"/api/auth/users/{user.Id}/roles", content);
 
@@ -757,8 +754,7 @@ namespace InnoShop.Services.AuthAPI.IntegrationTests
                 var responseString = await response.Content.ReadAsStringAsync();
                 var responseDto = JsonConvert.DeserializeObject<ResponseDto>(responseString);
 
-                responseDto.IsSuccess.Should().BeTrue();
-                responseDto.Message.Should().Contain("Success.");
+                responseDto.Should().BeEquivalentTo(expectedResult);
             }
         }
 
@@ -794,6 +790,12 @@ namespace InnoShop.Services.AuthAPI.IntegrationTests
                 var jsonContent = JsonConvert.SerializeObject(requestModel);
                 var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
+                var expectedResult = new ResponseDto
+                {
+                    IsSuccess = false,
+                    Message = "User not found.",
+                };
+
                 // Act
                 var response = await _client.PostAsync($"/api/auth/users/{Guid.NewGuid()}/roles", content);
 
@@ -802,54 +804,9 @@ namespace InnoShop.Services.AuthAPI.IntegrationTests
                 var responseString = await response.Content.ReadAsStringAsync();
                 var responseDto = JsonConvert.DeserializeObject<ResponseDto>(responseString);
 
-                responseDto.IsSuccess.Should().BeFalse();
-                responseDto.Message.Should().Contain("User not found.");
+                responseDto.Should().BeEquivalentTo(expectedResult);
             }
         }
-
-        //[Test]
-        //public async Task AddRoleToUser_ShouldReturnStatusCode500WithError_WhenRoleAssignmentFails()
-        //{
-        //    using (var scope = _factory.Services.CreateScope())
-        //    {
-        //        // Arrange
-        //        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-        //        var jwtTokenGenerator = scope.ServiceProvider.GetRequiredService<IJwtTokenGenerator>();
-
-        //        var client = _client;
-
-        //        var email = "testuser12@example.com";
-        //        var user = new ApplicationUser
-        //        {
-        //            Name = email,
-        //            UserName = email,
-        //            Email = email,
-        //            EmailConfirmed = true,
-        //        };
-        //        await userManager.CreateAsync(user, "ValidPass123*");
-
-        //        var roles = new[] { "ADMIN" };
-
-        //        var token = jwtTokenGenerator.GenerateToken(user, roles);
-
-        //        var requestModel = new { Role = new string('A', 257) };
-
-        //        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-        //        var jsonContent = JsonConvert.SerializeObject(requestModel);
-        //        var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-
-        //        // Act
-        //        var response = await _client.PostAsync($"/api/auth/users/{user.Id}/roles", content);
-
-        //        // Assert
-        //        response.StatusCode.Should().Be(HttpStatusCode.InternalServerError);
-
-        //        var responseString = await response.Content.ReadAsStringAsync();
-
-        //        responseString.Should().Contain("String or binary data would be truncated");
-        //    }
-        //}
 
         [Test]
         public async Task ForgotPassword_ShouldReturnOkWithResponseDto_WhenEmailIsValid()
@@ -874,6 +831,12 @@ namespace InnoShop.Services.AuthAPI.IntegrationTests
                 var jsonContent = JsonConvert.SerializeObject(requestModel);
                 var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
+                var expectedResult = new ResponseDto
+                {
+                    IsSuccess = true,
+                    Message = "Success.",
+                };
+
                 // Act
                 var response = await _client.PostAsync("/api/auth/users/password/forgot", content);
 
@@ -882,8 +845,7 @@ namespace InnoShop.Services.AuthAPI.IntegrationTests
                 var responseString = await response.Content.ReadAsStringAsync();
                 var responseDto = JsonConvert.DeserializeObject<ResponseDto>(responseString);
 
-                responseDto.IsSuccess.Should().BeTrue();
-                responseDto.Message.Should().Contain("Success.");
+                responseDto.Should().BeEquivalentTo(expectedResult);
             }
         }
 
@@ -896,6 +858,12 @@ namespace InnoShop.Services.AuthAPI.IntegrationTests
             var jsonContent = JsonConvert.SerializeObject(requestModel);
             var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
+            var expectedResult = new ResponseDto
+            {
+                IsSuccess = false,
+                Message = "Invalid Credentials.",
+            };
+
             // Act
             var response = await _client.PostAsync("/api/auth/users/password/forgot", content);
 
@@ -904,8 +872,7 @@ namespace InnoShop.Services.AuthAPI.IntegrationTests
             var responseString = await response.Content.ReadAsStringAsync();
             var responseDto = JsonConvert.DeserializeObject<ResponseDto>(responseString);
 
-            responseDto.IsSuccess.Should().BeFalse();
-            responseDto.Message.Should().Contain("Invalid Credentials");
+            responseDto.Should().BeEquivalentTo(expectedResult);
         }
 
         [Test]
@@ -937,6 +904,12 @@ namespace InnoShop.Services.AuthAPI.IntegrationTests
                 var jsonContent = JsonConvert.SerializeObject(requestModel);
                 var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
+                var expectedResult = new ResponseDto
+                {
+                    IsSuccess = true,
+                    Message = "Success.",
+                };
+
                 // Act
                 var response = await _client.PostAsync("/api/auth/users/password/reset", content);
 
@@ -945,8 +918,7 @@ namespace InnoShop.Services.AuthAPI.IntegrationTests
                 var responseString = await response.Content.ReadAsStringAsync();
                 var responseDto = JsonConvert.DeserializeObject<ResponseDto>(responseString);
 
-                responseDto.IsSuccess.Should().BeTrue();
-                responseDto.Message.Should().Contain("Success.");
+                responseDto.Should().BeEquivalentTo(expectedResult);
             }
         }
 
@@ -979,6 +951,13 @@ namespace InnoShop.Services.AuthAPI.IntegrationTests
                 var jsonContent = JsonConvert.SerializeObject(requestModel);
                 var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
+                var expectedResult = new ResponseDto
+                {
+                    IsSuccess = false,
+                    Message = "Invalid Credentials.",
+                    Errors = new JArray { "Invalid token." },
+                };
+
                 // Act
                 var response = await _client.PostAsync("/api/auth/users/password/reset", content);
 
@@ -987,12 +966,7 @@ namespace InnoShop.Services.AuthAPI.IntegrationTests
                 var responseString = await response.Content.ReadAsStringAsync();
                 var responseDto = JsonConvert.DeserializeObject<ResponseDto>(responseString);
 
-                responseDto.IsSuccess.Should().BeFalse();
-                responseDto.Message.Should().Contain("Invalid Credentials.");
-                var errorsArray = responseDto.Errors as JArray;
-                var errors = errorsArray?.Select(e => e.ToString()).ToList();
-
-                errors.Should().Contain("Invalid token.");
+                responseDto.Should().BeEquivalentTo(expectedResult);
             }
         }
 
@@ -1010,6 +984,12 @@ namespace InnoShop.Services.AuthAPI.IntegrationTests
             var jsonContent = JsonConvert.SerializeObject(requestModel);
             var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
+            var expectedResult = new ResponseDto
+            {
+                IsSuccess = false,
+                Message = "Invalid Credentials.",
+            };
+
             // Act
             var response = await _client.PostAsync("/api/auth/users/password/reset", content);
 
@@ -1018,9 +998,7 @@ namespace InnoShop.Services.AuthAPI.IntegrationTests
             var responseString = await response.Content.ReadAsStringAsync();
             var responseDto = JsonConvert.DeserializeObject<ResponseDto>(responseString);
 
-            responseDto.IsSuccess.Should().BeFalse();
-            responseDto.Message.Should().Contain("Invalid Credentials");
-
+            responseDto.Should().BeEquivalentTo(expectedResult);
         }
 
         [Test]
@@ -1057,6 +1035,12 @@ namespace InnoShop.Services.AuthAPI.IntegrationTests
                 var jsonContent = JsonConvert.SerializeObject(updateUserDto);
                 var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
+                var expectedResult = new ResponseDto
+                {
+                    IsSuccess = true,
+                    Message = "Success.",
+                };
+
                 // Act
                 var response = await client.PutAsync($"/api/auth/users/{user.Id}", content);
 
@@ -1065,8 +1049,7 @@ namespace InnoShop.Services.AuthAPI.IntegrationTests
                 var responseString = await response.Content.ReadAsStringAsync();
                 var responseDto = JsonConvert.DeserializeObject<ResponseDto>(responseString);
 
-                responseDto.IsSuccess.Should().BeTrue();
-                responseDto.Message.Should().Contain("Success.");
+                responseDto.Should().BeEquivalentTo(expectedResult);
 
                 using (var newScope = _factory.Services.CreateScope())
                 {
@@ -1155,6 +1138,12 @@ namespace InnoShop.Services.AuthAPI.IntegrationTests
                 var jsonContent = JsonConvert.SerializeObject(updateUserDto);
                 var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
+                var expectedResult = new ResponseDto
+                {
+                    IsSuccess = false,
+                    Message = "User not found.",
+                };
+
                 // Act
                 var response = await client.PutAsync($"/api/auth/users/{Guid.NewGuid()}", content);
 
@@ -1163,8 +1152,7 @@ namespace InnoShop.Services.AuthAPI.IntegrationTests
                 var responseString = await response.Content.ReadAsStringAsync();
                 var responseDto = JsonConvert.DeserializeObject<ResponseDto>(responseString);
 
-                responseDto.IsSuccess.Should().BeFalse();
-                responseDto.Message.Should().Contain("User not found.");
+                responseDto.Should().BeEquivalentTo(expectedResult);
             }
         }
 
@@ -1179,7 +1167,6 @@ namespace InnoShop.Services.AuthAPI.IntegrationTests
 
                 var client = _client;
 
-                // Создаём пользователя с ролью ADMIN
                 var adminEmail = "testuser12@example.com";
                 var adminUser = new ApplicationUser
                 {
@@ -1225,7 +1212,6 @@ namespace InnoShop.Services.AuthAPI.IntegrationTests
 
                 var client = _client;
 
-                // Создаём пользователя с ролью ADMIN
                 var adminEmail = "testuser12@example.com";
                 var adminUser = new ApplicationUser
                 {   Name = "New Name",
@@ -1299,10 +1285,9 @@ namespace InnoShop.Services.AuthAPI.IntegrationTests
                 responseDto.IsSuccess.Should().BeTrue();
                 responseDto.Result.Should().NotBeNull();
 
-                var returnedUser = JsonConvert.DeserializeObject<UserDto>(responseDto.Result.ToString());
-                returnedUser.Email.Should().Be(adminEmail);
-                returnedUser.Name.Should().Be("Test Name");
-                returnedUser.PhoneNumber.Should().Be("+1234567890");
+                var user = ((JObject)responseDto.Result).ToObject<UserDto>();
+
+                adminUser.Should().BeEquivalentTo(user);
             }
         }
 
@@ -1337,6 +1322,12 @@ namespace InnoShop.Services.AuthAPI.IntegrationTests
                 var jsonContent = JsonConvert.SerializeObject(requestModel);
                 var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
+                var expectedResult = new ResponseDto
+                {
+                    IsSuccess = false,
+                    Message = "User not found.",
+                };
+
                 // Act
                 var response = await client.PostAsync("/api/auth/users/by-email", content);
 
@@ -1346,8 +1337,7 @@ namespace InnoShop.Services.AuthAPI.IntegrationTests
                 var responseString = await response.Content.ReadAsStringAsync();
                 var responseDto = JsonConvert.DeserializeObject<ResponseDto>(responseString);
 
-                responseDto.IsSuccess.Should().BeFalse();
-                responseDto.Message.Should().Contain("User not found.");    
+                responseDto.Should().BeEquivalentTo(expectedResult);
             }
         }
 
@@ -1397,6 +1387,12 @@ namespace InnoShop.Services.AuthAPI.IntegrationTests
                 var client = _client;
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
+                var expectedResult = new ResponseDto
+                {
+                    IsSuccess = true,
+                    Message = "Success.",
+                };
+
                 // Act
                 var response = await client.DeleteAsync($"/api/auth/users/{user.Id}");
 
@@ -1405,8 +1401,7 @@ namespace InnoShop.Services.AuthAPI.IntegrationTests
                 var responseString = await response.Content.ReadAsStringAsync();
                 var responseDto = JsonConvert.DeserializeObject<ResponseDto>(responseString);
 
-                responseDto.IsSuccess.Should().BeTrue();
-                responseDto.Message.Should().Contain("Success");
+                responseDto.Should().BeEquivalentTo(expectedResult);
 
                 using (var newScope = _factory.Services.CreateScope())
                 {
@@ -1444,6 +1439,12 @@ namespace InnoShop.Services.AuthAPI.IntegrationTests
                 var nonExistentUserId = Guid.NewGuid();
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
+                var expectedResult = new ResponseDto
+                {
+                    IsSuccess = false,
+                    Message = "User not found.",
+                };
+
                 // Act
                 var response = await client.DeleteAsync($"/api/auth/users/{nonExistentUserId}");
 
@@ -1452,8 +1453,7 @@ namespace InnoShop.Services.AuthAPI.IntegrationTests
                 var responseString = await response.Content.ReadAsStringAsync();
                 var responseDto = JsonConvert.DeserializeObject<ResponseDto>(responseString);
 
-                responseDto.IsSuccess.Should().BeFalse();
-                responseDto.Message.Should().Contain("User not found.");
+                responseDto.Should().BeEquivalentTo(expectedResult);
             }
         }
 
