@@ -20,7 +20,7 @@ namespace InnoShop.Services.AuthAPI
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
@@ -49,6 +49,7 @@ namespace InnoShop.Services.AuthAPI
             builder.Services.AddScoped<IJwtTokenValidator, JwtTokenValidator>();
             builder.Services.AddScoped<IAuthService, AuthService>();
             builder.Services.AddScoped<IEmailSender, EmailSender>();
+            builder.Services.AddScoped<IDbInitializer, DbInitializer>();
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddValidatorsFromAssemblyContaining<EmailDtoValidator>();
             builder.Services.AddSwaggerGen(options =>
@@ -96,23 +97,18 @@ namespace InnoShop.Services.AuthAPI
             app.UseAuthorization();
 
             app.MapControllers();
-            ApplyMigration(); // apply pending migrations
-            app.Run();
+            await ApplyMigrationAsync(); // apply pending migrations
+            await app.RunAsync();
 
-            void ApplyMigration()
+            async Task ApplyMigrationAsync()
             {
                 using (var scope = app.Services.CreateScope())
                 {
-                    var _db = scope.ServiceProvider.GetRequiredService<AuthDbContext>();
+                    var dbInitializer = scope.ServiceProvider.GetRequiredService<IDbInitializer>();
 
-                    if (_db.Database.GetPendingMigrations().Count() > 0)
-                    {
-                        _db.Database.Migrate();
-                    }
+                    await dbInitializer.InitializeAsync();
                 }
             }
         }
-
-
     }
 }
