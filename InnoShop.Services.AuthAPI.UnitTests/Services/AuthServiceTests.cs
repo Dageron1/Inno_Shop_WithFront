@@ -35,11 +35,6 @@ namespace InnoShop.Services.AuthAPI.UnitTests.Services
         [SetUp]
         public void SetUp()
         {
-            // Настройка опций для использования InMemory базы данных
-            //var options = new DbContextOptionsBuilder<AppDbContext>()
-            //    .UseInMemoryDatabase(databaseName: "TestDb")
-            //    .Options;
-
             _userManagerMock = GetMockUserManager();
             _roleManagerMock = GetMockRoleManager();
             _jwtTokenGeneratorMock = new Mock<IJwtTokenGenerator>();
@@ -263,11 +258,9 @@ namespace InnoShop.Services.AuthAPI.UnitTests.Services
                 Errors = new List<string> { "User creation failed" }
             };
 
-            // Мокируем неудачное создание пользователя
             _userManagerMock.Setup(um => um.CreateAsync(It.IsAny<ApplicationUser>(), registrationRequest.Password))
                             .ReturnsAsync(IdentityResult.Failed(new IdentityError { Description = "User creation failed" }));
 
-            // Мокируем поведение, что метод проверки роли не вызывается
             _roleManagerMock.Setup(rm => rm.RoleExistsAsync(It.IsAny<string>()));
             _userManagerMock.Setup(um => um.AddToRoleAsync(It.IsAny<ApplicationUser>(), It.IsAny<string>()));
 

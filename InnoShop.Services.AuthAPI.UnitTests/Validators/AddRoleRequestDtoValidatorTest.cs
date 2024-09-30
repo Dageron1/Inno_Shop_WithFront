@@ -24,7 +24,7 @@ namespace InnoShop.Services.AuthAPI.UnitTests.Validators
         public void ShouldHaveError_WhenRoleIsEmpty()
         {
             // Arrange
-            var model = new AddRoleRequestDto { Role = "" }; // Пустая роль
+            var model = new AddRoleRequestDto { Role = "" };
 
             // Act & Assert
             var result = _validator.TestValidate(model);
@@ -36,7 +36,7 @@ namespace InnoShop.Services.AuthAPI.UnitTests.Validators
         public void ShouldNotHaveError_WhenRoleIsProvided()
         {
             // Arrange
-            var model = new AddRoleRequestDto { Role = "Admin" }; // Некоторая роль
+            var model = new AddRoleRequestDto { Role = "Admin" };
 
             // Act & Assert
             var result = _validator.TestValidate(model);

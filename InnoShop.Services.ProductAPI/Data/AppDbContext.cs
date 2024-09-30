@@ -21,8 +21,7 @@ namespace InnoShop.Services.ProductAPI.Data
             //    Price = 130,
             //    Description = "Ultra modern new phone with A14383 processor, and 25w charger, not included :( !!!",
             //    ImageUrl = "https://placeholder.co/600x400",
-            //    CategoryName = "Phone"
-                
+            //    CategoryName = "Phone"   
             //});
         }
     }

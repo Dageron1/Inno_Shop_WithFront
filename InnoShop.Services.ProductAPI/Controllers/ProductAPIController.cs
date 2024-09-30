@@ -13,7 +13,6 @@ using System.Linq;
 using System.Net;
 using System.Security.Claims;
 
-//контроллеры в ASP.NET Core по умолчанию создаются с временем жизни transient
 namespace InnoShop.Services.ProductAPI.Controllers
 {
     [Route("api/")]

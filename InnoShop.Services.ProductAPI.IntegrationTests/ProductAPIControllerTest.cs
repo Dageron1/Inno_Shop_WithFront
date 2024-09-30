@@ -266,7 +266,6 @@ namespace InnoShop.Services.ProductAPI.IntegrationTests
         [Test]
         public async Task GetProductById_ShouldReturnNotFoundWithResponseDto_WhenProductDoesNotExist()
         {
-            // Act
             using (var scope = _productApiFactory.Services.CreateScope())
             {
                 // Arrange
@@ -277,6 +276,8 @@ namespace InnoShop.Services.ProductAPI.IntegrationTests
             }
 
             var nonExistentProductId = 999;
+
+            // Act
             var response = await _productApiClient.GetAsync($"/api/products/{nonExistentProductId}");
 
             // Assert

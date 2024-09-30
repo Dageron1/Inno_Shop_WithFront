@@ -32,7 +32,6 @@ public class RegistrationRequestDtoValidatorTests
         result.ShouldHaveValidationErrorFor(x => x.Email).WithErrorMessage("Invalid email format.");
     }
 
-    // Name
     [Test]
     public void ShouldHaveError_WhenNameIsEmpty()
     {
@@ -60,7 +59,6 @@ public class RegistrationRequestDtoValidatorTests
         result.ShouldHaveValidationErrorFor(x => x.Name).WithErrorMessage("Invalid name.");
     }
 
-    // PhoneNumber
     [Test]
     public void ShouldHaveError_WhenPhoneNumberIsEmpty()
     {

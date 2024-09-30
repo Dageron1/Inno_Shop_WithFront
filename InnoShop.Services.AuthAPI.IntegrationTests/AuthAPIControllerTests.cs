@@ -247,9 +247,10 @@ namespace InnoShop.Services.AuthAPI.IntegrationTests
         [Test]
         public async Task SendEmailConfirmation_ShouldReturnBadRequest_WhenEmailAlreadyConfirmed()
         {
-            // Arrange
+           
             using (var scope = _factory.Services.CreateScope())
             {
+                // Arrange
                 var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
 
                 var email = "confirmeduser@example.com";

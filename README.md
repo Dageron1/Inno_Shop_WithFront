@@ -1,6 +1,6 @@
 # InnoShop
 
-InnoShop is a web-based e-commerce system that allows users to manage and purchase products. The system includes role-based access where administrators have full control over the platform, and regular users can manage their own products after email verification.
+**InnoShop** is a web-based e-commerce system that allows users to manage and purchase products. The system includes role-based access where administrators have full control over the platform, and regular users can manage their own products after email verification.
 
 ## Features
 
@@ -21,7 +21,7 @@ InnoShop is a web-based e-commerce system that allows users to manage and purcha
 
 ### [AuthAPI](InnoShop.Services.AuthAPI) 
 1) In the **appsettings.json** file you need to configure the **"ConnectionStrings:DefaultConnection"** by adding your SQL Server connection string.
-2) Also in the **appsettings.json** file you need to configure the connection via SmtpClient.
+2) Also in the **appsettings.json** file you need to configure the connection via **SmtpClient**.
 Example: 
 ```json
 {
@@ -31,17 +31,21 @@ Example:
     "SmtpPort": 587,
     "Username": "email@gmail.com",
     "Password": "smtppassword"
+  },
+  "ConnectionStrings": {
+    "DockerConnection": "Server=innoshop-master-db-1;Database=InnoShop_AuthAPI;User Id=sa;Password=;Integrated Security=False;TrustServerCertificate=True;Connection Timeout=30;",
+    "DefaultConnection": "Server=(localdb)\\mssqllocaldb;Database=InnoShop_Auth;Trusted_Connection=True;TrustServerCertificate=True"
   }
 }
 ```
 
 3) To run tests in AuthAPI, you also need to create a file **appsettings.Test.json** in which you need to add your connection string to the given SQL Server database in the **"ConnectionStrings:DefaultConnection"**.
-4) To work with Docker, in the appsettings.json file, you need to take the connection string from the "ConnectionStrings:DockerConnection" section and paste it with replacement into the "DefaultConnection".
+4) To work with Docker, in the **appsettings.json file**, you need to take the connection string from the **"ConnectionStrings:DockerConnection"** section and paste it with replacement into the **"DefaultConnection"**.
 
 ### [ProductAPI](InnoShop.Services.ProductAPI) 
-1) In the appsettings.json file you need to configure the "ConnectionStrings:DefaultConnection" by adding your SQL Server connection string.
-2) Before running tests, make sure to set the correct connection string for your SQL Server database in the appsettings.Test.json file.
-3) To work with Docker, you need to configure a connection string. In the appsettings.json file, you need to take the connection string from the **"ConnectionStrings":"DockerConnection"** section and paste it with replacement into the **"DefaultConnection"**.
+1) In the **appsettings.json** file you need to configure the **"ConnectionStrings:DefaultConnection"** by adding your SQL Server connection string.
+2) Before running tests, make sure to set the correct connection string for your SQL Server database in the **appsettings.Test.json** file.
+3) To work with Docker, in the **appsettings.json** file, you need to take the connection string from the **"ConnectionStrings":"DockerConnection"** section and paste it with replacement into the **"DefaultConnection"**.
 
 ## Initially, two users will be created.
 

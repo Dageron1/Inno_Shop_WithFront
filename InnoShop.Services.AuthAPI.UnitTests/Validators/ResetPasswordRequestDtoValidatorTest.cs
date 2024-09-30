@@ -14,7 +14,6 @@ public class ResetPasswordRequestDtoValidatorTests
         _validator = new ResetPasswordRequestDtoValidator();
     }
 
-    // Email
     [Test]
     public void ShouldHaveError_WhenEmailIsEmpty()
     {
@@ -33,7 +32,6 @@ public class ResetPasswordRequestDtoValidatorTests
         result.ShouldHaveValidationErrorFor(x => x.Email).WithErrorMessage("Invalid email format.");
     }
 
-    // Token
     [Test]
     public void ShouldHaveError_WhenTokenIsEmpty()
     {
@@ -43,7 +41,6 @@ public class ResetPasswordRequestDtoValidatorTests
         result.ShouldHaveValidationErrorFor(x => x.Token).WithErrorMessage("Token is required.");
     }
 
-    //  NewPassword
     [Test]
     public void ShouldHaveError_WhenNewPasswordIsEmpty()
     {

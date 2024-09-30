@@ -346,48 +346,6 @@ namespace InnoShop.Services.ProductAPI.UnitTests
             _productServiceMock.Verify();
         }
 
-        //[Test]
-        //public async Task Post_ShouldReturnStatusCode500WithResponseDto_WhenExceptionOccurs()
-        //{
-        //    // Arrange
-        //    var productDto = new ProductDto { Name = "New Product" };
-
-        //    // Мокируем выброс исключения в сервисе
-        //    _productServiceMock.Setup(x => x.CreateAsync(It.IsAny<ProductDto>())).ThrowsAsync(new Exception("An error occurred while creating the product."));
-
-        //    // Мокируем получение userId из Claims
-        //    var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]
-        //    {
-        //        new Claim(ClaimTypes.NameIdentifier, "test-user")
-        //    }, "mock"));
-
-        //    _productAPIController.ControllerContext = new ControllerContext()
-        //    {
-        //        HttpContext = new DefaultHttpContext() { User = user }
-        //    };
-
-        //    var expectedResult = new ResponseDto
-        //    {
-        //        IsSuccess = false,
-        //        Message = "An error occurred while creating the product.",
-        //        Result = null,
-        //    };
-
-        //    // Act
-        //    var result = await _productAPIController.Post(productDto);
-
-        //    // Assert
-        //    var objectResult = result.Result as ObjectResult;
-        //    objectResult.Should().NotBeNull();
-        //    objectResult.StatusCode.Should().Be(500);
-
-        //    var response = objectResult.Value as ResponseDto;
-
-        //    response.Should().BeEquivalentTo(expectedResult);
-        //    // Проверяем, что метод CreateAsync был вызван ровно один раз
-        //    _productServiceMock.Verify(x => x.CreateAsync(It.IsAny<ProductDto>()), Times.Once);
-        //}
-
         [Test]
         public async Task Post_ShouldSetCreatedByUserId_FromUserClaims()
         {
@@ -858,38 +816,5 @@ namespace InnoShop.Services.ProductAPI.UnitTests
             _productServiceMock.Verify(p => p.GetById(productId), Times.Once);
             _productServiceMock.Verify(p => p.DeleteAsync(productId), Times.Once);
         }
-
-        //[Test]
-        //public async Task Delete_ShouldReturnInternalServerErrorWithResponseDto_WhenExceptionThrown()
-        //{
-        //    // Arrange
-        //    int productId = 1;
-        //    string userId = "admin-user-id";
-
-        //    var product = new ProductDto { ProductId = productId, CreatedByUserId = "admin-user-id" };
-        //    _productServiceMock.Setup(p => p.GetById(productId))
-        //        .ReturnsAsync(product);
-
-        //    var claims = new List<Claim> { new Claim(ClaimTypes.NameIdentifier, userId) };
-        //    var identity = new ClaimsIdentity(claims, "TestAuthType");
-        //    var claimsPrincipal = new ClaimsPrincipal(identity);
-
-        //    _productAPIController.ControllerContext = new ControllerContext
-        //    {
-        //        HttpContext = new DefaultHttpContext { User = claimsPrincipal }
-        //    };
-
-        //    _productServiceMock.Setup(p => p.DeleteAsync(productId)).ThrowsAsync(new DbUpdateException("Simulated exception"));
-
-        //    // Act
-        //    var result = await _productAPIController.Delete(productId);
-
-        //    // Assert
-        //    var internalServerErrorResult = result.Result as ObjectResult;
-        //    internalServerErrorResult.StatusCode.Should().Be(500);
-        //    var response = internalServerErrorResult.Value as ResponseDto;
-        //    response.IsSuccess.Should().BeFalse();
-        //    response.Message.Should().Contain("Simulated exception");
-        //}
     }
 }

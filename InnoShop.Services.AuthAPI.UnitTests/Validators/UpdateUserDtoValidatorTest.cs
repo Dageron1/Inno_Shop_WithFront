@@ -14,7 +14,6 @@ public class UpdateUserDtoValidatorTests
         _validator = new UpdateUserDtoValidator();
     }
 
-    // Name
     [Test]
     public void ShouldHaveError_WhenNameIsEmpty()
     {
@@ -40,7 +39,6 @@ public class UpdateUserDtoValidatorTests
         result.ShouldHaveValidationErrorFor(x => x.Name).WithErrorMessage("Invalid name.");
     }
 
-    // PhoneNumber
     [Test]
     public void ShouldHaveError_WhenPhoneNumberIsEmpty()
     {

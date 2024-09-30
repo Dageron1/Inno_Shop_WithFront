@@ -20,7 +20,6 @@ namespace InnoShop.Services.AuthAPI.UnitTests.Validators
             _validator = new PaginationParamsValidator();
         }
 
-        // Тест для PageNumber
         [Test]
         public void ShouldHaveError_WhenPageNumberIsLessThanOne()
         {
@@ -44,7 +43,6 @@ namespace InnoShop.Services.AuthAPI.UnitTests.Validators
             result.ShouldNotHaveValidationErrorFor(x => x.PageNumber);
         }
 
-        // Тесты для PageSize
         [Test]
         public void ShouldHaveError_WhenPageSizeIsLessThanOrEqualToZero()
         {

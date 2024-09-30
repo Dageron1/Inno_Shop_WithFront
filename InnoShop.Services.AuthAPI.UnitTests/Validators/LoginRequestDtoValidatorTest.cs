@@ -19,7 +19,6 @@ namespace InnoShop.Services.AuthAPI.UnitTests.Validators
             _validator = new LoginRequestDtoValidator();
         }
 
-        // Тесты для валидации Email
         [Test]
         public void ShouldHaveError_WhenEmailIsEmpty()
         {
@@ -44,7 +43,6 @@ namespace InnoShop.Services.AuthAPI.UnitTests.Validators
                   .WithErrorMessage("Invalid email format.");
         }
 
-        // Тесты для валидации Password
         [Test]
         public void ShouldHaveError_WhenPasswordIsEmpty()
         {
@@ -117,7 +115,6 @@ namespace InnoShop.Services.AuthAPI.UnitTests.Validators
                   .WithErrorMessage("Password must contain at least one special character.");
         }
 
-        // Тест для валидного Email и Password
         [Test]
         public void ShouldNotHaveError_WhenEmailAndPasswordAreValid()
         {

@@ -71,28 +71,28 @@ namespace InnoShop.Services.AuthAPI.Services
             return tokenHandler.WriteToken(token);
         }
 
-        // delete
-        public string GeneratePasswordResetTokenAsync(string userId, string passwordResetToken)
-        {
-            var tokenHandler = new JwtSecurityTokenHandler();
+        //// delete
+        //public string GeneratePasswordResetTokenAsync(string userId, string passwordResetToken)
+        //{
+        //    var tokenHandler = new JwtSecurityTokenHandler();
 
-            var key = Encoding.ASCII.GetBytes(_jwtOptions.Secret);
+        //    var key = Encoding.ASCII.GetBytes(_jwtOptions.Secret);
 
-            var claimsList = new List<Claim>
-            {
-                new Claim("userId", userId),
-                new Claim("resetPasswordToken", passwordResetToken),
-            };
+        //    var claimsList = new List<Claim>
+        //    {
+        //        new Claim("userId", userId),
+        //        new Claim("resetPasswordToken", passwordResetToken),
+        //    };
 
-            var tokenDescriptor = new SecurityTokenDescriptor
-            {
-                Subject = new ClaimsIdentity(claimsList),
-                Expires = DateTime.UtcNow.AddDays(7),
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
-            };
+        //    var tokenDescriptor = new SecurityTokenDescriptor
+        //    {
+        //        Subject = new ClaimsIdentity(claimsList),
+        //        Expires = DateTime.UtcNow.AddDays(7),
+        //        SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+        //    };
 
-            var token = tokenHandler.CreateToken(tokenDescriptor);
-            return tokenHandler.WriteToken(token);
-        }
+        //    var token = tokenHandler.CreateToken(tokenDescriptor);
+        //    return tokenHandler.WriteToken(token);
+        //}
     }
 }
