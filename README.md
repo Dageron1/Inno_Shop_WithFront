@@ -69,6 +69,7 @@ Example:
 - [NUnit](https://github.com/nunit/nunit) and [moq](https://github.com/devlooped/moq) for testing.
 - [SmtpServer](https://blog.elmah.io/how-to-send-emails-from-csharp-net-the-definitive-tutorial/) for a simple SMTP server.
 - [FluentValidation](https://docs.fluentvalidation.net/en/latest/)
+- [FluentAssertions](https://github.com/fluentassertions/fluentassertions) for testing.
 - [AutoMapper](https://docs.automapper.org/en/stable/Getting-started.html)
 - [Newtonsoft](https://www.newtonsoft.com/json) for serialization and deserialization.
 
