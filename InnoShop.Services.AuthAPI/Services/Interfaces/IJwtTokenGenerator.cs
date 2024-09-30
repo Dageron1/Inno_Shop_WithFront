@@ -6,6 +6,6 @@ namespace InnoShop.Services.AuthAPI.Services.Interfaces
     {
         string GenerateToken(ApplicationUser applicationUser, IEnumerable<string> roles);
         string GenerateEmailConfirmationTokenAsync(string userId, string emailConfirmationToken);
-        string GeneratePasswordResetTokenAsync(string userId, string passwordResetToken);
+        //string GeneratePasswordResetTokenAsync(string userId, string passwordResetToken);
     }
 }

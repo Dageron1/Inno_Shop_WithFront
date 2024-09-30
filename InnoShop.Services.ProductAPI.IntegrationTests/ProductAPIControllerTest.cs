@@ -700,7 +700,7 @@ namespace InnoShop.Services.ProductAPI.IntegrationTests
                 var responseDto = JsonConvert.DeserializeObject<ResponseDto>(responseString);
 
                 responseDto.IsSuccess.Should().BeFalse();
-                responseDto.Message.Should().Be("ID in URL does not match ID in the model.");
+                responseDto.Message.Should().Be("Id in URL does not match ID in the model.");
             }
         }
 

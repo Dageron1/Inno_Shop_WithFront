@@ -390,7 +390,7 @@ namespace InnoShop.Services.ProductAPI.UnitTests
             var expectedResult = new ResponseDto
             {
                 IsSuccess = false,
-                Message = "ID in URL does not match ID in the model."
+                Message = "Id in URL does not match ID in the model."
             };
 
             var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]

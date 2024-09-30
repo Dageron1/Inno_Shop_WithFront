@@ -130,7 +130,7 @@ namespace InnoShop.Services.ProductAPI.Controllers
             if (id != productDto.ProductId)
             {
                 _response.IsSuccess = false;
-                _response.Message = "ID in URL does not match ID in the model.";
+                _response.Message = "Id in URL does not match ID in the model.";
                 return BadRequest(_response);
             }
 
@@ -147,6 +147,7 @@ namespace InnoShop.Services.ProductAPI.Controllers
 
             if (User.IsInRole("ADMIN") || productFromDbDto.CreatedByUserId == userId)
             {
+                productDto.CreatedByUserId = userId;
                 var updatedProduct = await _productService.UpdateAsync(productDto);
 
                 if (updatedProduct == null)
