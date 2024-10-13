@@ -1,0 +1,121 @@
+﻿@using InnoShop.Web.Models.Dto
+@model LoginRequestDto
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="https://fonts.googleapis.com/css?family=Lato:300,400,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+<body>
+    <div class="container d-flex align-items-center justify-content-center" style="min-height: 100vh;">
+        <div class="row text-center w-100">
+            <div class="d-flex justify-content-center">
+                <div class="card rounded-3 shadow border-0" style="width: 25rem;">
+                    <img class="card-img-top rounded-top" src="~/images/LoginImage/bg-1.jpg" alt="" style="margin-bottom: 0;" />
+                    <div class="card-body p-5">
+                        <!-- Зарезервируем место для сообщений с помощью min-height -->
+                        <div style="position: relevant; top: 37%; left: 5%; width: 90%; z-index: 1;">
+                            @if (TempData["success"] != null)
+                            {
+                                <div class="alert alert-success" style="font-size: 14px; padding: 5px 10px;">
+                                    @TempData["success"]
+                                </div>
+                            }
+
+                            @if (TempData["error"] != null)
+                            {
+                                <div class="alert alert-danger" style="font-size: 14px; padding: 5px 10px;">
+                                    @TempData["error"]
+                                </div>
+                            }
+                        </div>
+
+                        <div class="d-flex mt-0">
+                            <div class="w-100">
+                                <h3 class="mb-4 text-start">Sign In</h3>
+                            </div>
+                        </div>
+
+                        <!-- Форма для входа -->
+                        <form id="account" method="post" class="mt-1">
+                            <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
+                            <div class="form-floating mb-3">
+                                <input asp-for="@Model.Email" id="mainEmail" class="form-control bg-white" autocomplete="username" aria-required="true" placeholder="name@example.com" />
+                                <label asp-for="@Model.Email" class="form-label">Email</label>
+                                <span asp-validation-for="@Model.Email" class="text-danger"></span>
+                            </div>
+                            <div class="form-floating mb-3">
+                                <input asp-for="@Model.Password" id="mainPassword" type="password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="password" />
+                                <label asp-for="@Model.Password" class="form-label">Password</label>
+                                <span asp-validation-for="@Model.Password" class="text-danger"></span>
+                            </div>
+
+                            <div>
+                                <button id="login-submit" type="submit" class="w-100 btn btn-lg btn-primary">Log in</button>
+                            </div>
+                        </form>
+                        <div class="d-flex flex-column text-center mt-3">
+                            <form id="resend-confirmation-form" asp-action="SendEmailConfirmation" method="post" style="display:inline;">
+                                <input asp-for="Email" type="hidden" id="emailHidden" />
+                                <button type="submit" class="btn btn-link p-0" style="font-size: 0.875rem;">Resend confirmation email</button>
+                            </form>
+                            <form id="forgot-password-form" asp-action="ForgotPassword" method="post" style="display:inline;">
+                                <input asp-for="Email" type="hidden" id="forgotPasswordEmail" />
+                                <button type="submit" class="btn btn-link p-0" style="font-size: 0.875rem;">Forgot password</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script type="text/javascript">
+        function validateEmail(email) {
+            var re = /^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/;
+            return re.test(String(email).toLowerCase());
+        }
+
+        document.getElementById('resend-confirmation-form').addEventListener('submit', function (event) {
+            var emailInput = document.getElementById('mainEmail').value;
+            var hiddenEmailInput = document.getElementById('emailHidden');
+
+            if (!emailInput) {
+                event.preventDefault();
+                alert("Please enter your email before resending the confirmation.");
+            } else if (!validateEmail(emailInput)) {
+                event.preventDefault();
+                alert("Please enter a valid email address.");
+            }
+            else {
+                hiddenEmailInput.value = emailInput;
+            }
+        });
+    </script>
+    <script type="text/javascript">
+        function validateEmail(email) {
+            var re = /^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/;
+            return re.test(String(email).toLowerCase());
+        }
+
+        document.getElementById('forgot-password-form').addEventListener('submit', function (event) {
+            var emailInput = document.getElementById('mainEmail').value;
+            var hiddenEmailInput = document.getElementById('forgotPasswordEmail');
+
+            if (!emailInput) {
+                event.preventDefault();
+                alert("Please enter your email before resending the confirmation.");
+            } else if (!validateEmail(emailInput)) {
+                event.preventDefault();
+                alert("Please enter a valid email address.");
+            }
+            else {
+                hiddenEmailInput.value = emailInput;
+            }
+        });
+    </script>
+}

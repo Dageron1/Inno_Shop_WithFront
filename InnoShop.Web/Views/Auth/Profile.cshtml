@@ -1,0 +1,120 @@
+﻿@using InnoShop.Web.Models.VM
+@model UserProfileViewModel
+<head>
+    <link rel="stylesheet" href="~/css/profile.css" />
+</head>
+<h2>Edit Profile</h2>
+
+<div class="wrapper bg-white mt-sm-5">
+    <div class="border-bottom d-flex align-items-center justify-content-between">
+        <div class="col-md-6 d-flex align-items-center">
+            <h4 class="pb-1" style="flex-shrink: 1; margin-right: 20px;">Account settings</h4>
+        </div>
+        <div class="col-md-6 d-flex justify-content-end">
+            @if (TempData["success"] != null)
+            {
+                <div class="alert alert-success" style="font-size: 14px; padding: 5px 10px; white-space: nowrap; min-width: auto;">
+                    @TempData["success"]
+                </div>
+            }
+
+            @if (TempData["error"] != null)
+            {
+                <div class="alert alert-danger" style="font-size: 14px; padding: 5px 10px;">
+                    @TempData["error"]
+                </div>
+            }
+        </div>
+    </div>
+   
+    <form asp-action="EditProfile" method="post">
+        <input type="hidden" asp-for="EmailConfirmed" />
+        <input type="hidden" asp-for="Email" />
+    <div class="d-flex align-items-start py-3 border-bottom">
+        <img src="https://images.pexels.com/photos/1037995/pexels-photo-1037995.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500"
+             class="img" alt="">
+        <div class="pl-sm-4 pl-2 ms-3" id="img-section">
+            <b>Profile Photo</b>
+            <p>Accepted file type .png. Less than 1MB</p>
+            <button class="btn button border"><b>Upload</b></button>
+        </div>
+    </div>
+    <div class="py-1">
+        <div class="row py-1">
+            <div class="col-md-6">
+                <label for="name">Username</label>
+                <input type="text" asp-for="Name" class="bg-light form-control" placeholder="You name">
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+                <div class="col-md-6 d-flex align-items-center">
+                    <label for="emailConfirmed" class="mr-2 mt-4"><h5>Email Confirmed</h5></label>
+                    <input type="checkbox" asp-for="EmailConfirmed" class="form-check-input mt-3 ms-2" disabled>
+                </div>
+        </div>
+        <div class="row py-1">
+            <div class="col-md-6">
+                <label for="email">Email Address</label>
+                    <input type="text" asp-for="Email" class="bg-light form-control" placeholder="example@gmail.com" disabled>
+                    <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+            <div class="col-md-6 pt-md-0 pt-3">
+                <label for="phone">Phone Number</label>
+                    <input type="tel" asp-for="PhoneNumber" class="bg-light form-control" placeholder="+1 213-548-6015">
+                    <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+            </div>
+        </div>
+           @*  <div class="row py-2">
+                <div class="col-md-6">
+                    <label for="email">Current Password</label>
+                    <input type="text" asp-for="Password" class="bg-light form-control" placeholder="example@gmail.com" disabled>
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+                <div class="col-md-6 pt-md-0 pt-3">
+                    <label for="phone">Confirm password</label>
+                    <input type="tel" asp-for="PhoneNumber" class="bg-light form-control" placeholder="+1 213-548-6015">
+                    <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                </div>
+            </div> *@
+        <div class="row py-1">
+            <div class="col-md-6">
+                <label for="country">Country</label>
+                <select name="country" id="country" class="bg-light">
+                    <option value="usa" selected>USA</option>
+                    <option value="uk">UK</option>
+                    <option value="uae">UAE</option>
+                </select>
+            </div>
+            <div class="col-md-6 pt-md-0 pt-1" id="lang">
+                <label for="language">Language</label>
+                <div class="arrow">
+                    <select name="language" id="language" class="bg-light">
+                        <option value="english" selected>English</option>
+                        <option value="english_us">English (United States)</option>
+                        <option value="enguk">English UK</option>
+                        <option value="arab">Arabic</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="py-3 pb-3 border-bottom">
+            <button class="btn btn-primary mr-3">Save Changes</button>
+            <button class="btn border button">Cancel</button>
+        </div>
+            <div class="d-sm-flex flex-row align-items-center pt-3" id="deactivate">
+                <div class="col-md-6">
+                    <b>Deactivate your account</b>
+                    <p>Details about your company account and password</p>
+                </div>
+                <div class="ml-auto ms-3">
+                    <button class="btn danger">Deactivate</button>
+                </div>
+            </div>
+            
+    </div>
+    </form>
+    @Html.Partial("_ChangePassword", new ChangePasswordViewModel())
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

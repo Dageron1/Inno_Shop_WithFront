@@ -27,6 +27,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		README.md = README.md
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InnoShop.Web", "InnoShop.Web\InnoShop.Web.csproj", "{951542D1-B8A7-423D-967E-8D197C332959}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -57,6 +59,10 @@ Global
 		{F561C131-CAC7-4600-8576-3A7CBEF77CB3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F561C131-CAC7-4600-8576-3A7CBEF77CB3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F561C131-CAC7-4600-8576-3A7CBEF77CB3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{951542D1-B8A7-423D-967E-8D197C332959}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{951542D1-B8A7-423D-967E-8D197C332959}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{951542D1-B8A7-423D-967E-8D197C332959}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{951542D1-B8A7-423D-967E-8D197C332959}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -68,6 +74,7 @@ Global
 		{6F4FE783-6957-493C-89C3-262D035E8A8E} = {6C6A8251-32B3-48B4-BA47-E9D1AF8CD24A}
 		{8E161642-5C9A-4D08-9830-400DA41EB00F} = {6C6A8251-32B3-48B4-BA47-E9D1AF8CD24A}
 		{F561C131-CAC7-4600-8576-3A7CBEF77CB3} = {6C6A8251-32B3-48B4-BA47-E9D1AF8CD24A}
+		{951542D1-B8A7-423D-967E-8D197C332959} = {66A4742D-073D-4A19-A1D5-CD46E7B4B080}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {9B3E0E76-A68F-4A91-8508-BF21B73E7D66}

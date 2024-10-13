@@ -40,38 +40,14 @@ namespace InnoShop.Services.ProductAPI
             builder.Services.AddFluentValidationAutoValidation();
             builder.Services.AddValidatorsFromAssemblyContaining<ProductDtoValidator>();
             builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen(options =>
-            {
-                options.AddSecurityDefinition(name: JwtBearerDefaults.AuthenticationScheme, securityScheme: new OpenApiSecurityScheme
-                {
-                    // default settings
-                    Name = "Authorization",
-                    Description = "Enter the Bearer Authorize string: `Bearer JWT-Token`",
-                    In = ParameterLocation.Header,
-                    Type = SecuritySchemeType.ApiKey,
-                    Scheme = "Bearer"
-                });
-                options.AddSecurityRequirement(new OpenApiSecurityRequirement
-                {
-                    {
-                        // default settings
-                        new OpenApiSecurityScheme
-                        {
-                            Reference = new OpenApiReference
-                            {
-                                Type = ReferenceType.SecurityScheme,
-                                Id = JwtBearerDefaults.AuthenticationScheme
-                            }
-                        }, new string[] {}
-                    }
-                });
-            });
+            builder.Services.ConfigureSwagger();
 
             builder.AddAppAuthentication();
 
             builder.Services.AddAuthorization();
 
             var app = builder.Build();
+
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())

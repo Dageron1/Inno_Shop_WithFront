@@ -1,4 +1,5 @@
-﻿using FluentValidation;
+﻿using Azure.Core;
+using FluentValidation;
 using InnoShop.Services.AuthAPI.Data;
 using InnoShop.Services.AuthAPI.Models;
 using InnoShop.Services.AuthAPI.Models.Dto;
@@ -11,6 +12,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Data;
 using System.Net;
 using System.Security.Claims;
+using System.Web;
 
 namespace InnoShop.Services.AuthAPI.Services
 {
@@ -21,19 +23,22 @@ namespace InnoShop.Services.AuthAPI.Services
         private readonly IJwtTokenGenerator _jwtTokenGenerator;
         private readonly IJwtTokenValidator _jwtTokenValidator;
         private readonly IEmailSender _emailSender;
+        private readonly IConfiguration _configuration;
 
         public AuthService(
             UserManager<ApplicationUser> userManager,
             RoleManager<IdentityRole> roleManager,
             IJwtTokenGenerator jwtTokenGenerator,
             IJwtTokenValidator jwtTokenValidator,
-            IEmailSender emailSender)
+            IEmailSender emailSender,
+            IConfiguration configuration)
         {
             _userManager = userManager;
             _roleManager = roleManager;
             _jwtTokenGenerator = jwtTokenGenerator;
             _jwtTokenValidator = jwtTokenValidator;
             _emailSender = emailSender;
+            _configuration = configuration;
         }
 
         public async Task<AuthServiceResult> Register(RegistrationRequestDto registrationRequestDto, Func<string, string> emailMessageBuilder)
@@ -233,7 +238,7 @@ namespace InnoShop.Services.AuthAPI.Services
             };
         }
 
-        public async Task<AuthServiceResult> GeneratePasswordResetTokenAsync(string email)
+        public async Task<AuthServiceResult> GeneratePasswordResetTokenAsync(string email, Func<string, string, string> emailMessageBuilder)
         {
             var user = await _userManager.FindByEmailAsync(email);
 
@@ -247,7 +252,9 @@ namespace InnoShop.Services.AuthAPI.Services
 
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
 
-            await _emailSender.SendEmailAsync(email, "Password Reset", $"Token: {token}");
+            var emailMessage = emailMessageBuilder(token,email);
+
+            await _emailSender.SendEmailAsync(email, "Password Reset", emailMessage);
 
             return new AuthServiceResult
             {
@@ -275,6 +282,36 @@ namespace InnoShop.Services.AuthAPI.Services
                 {
                     ErrorCode = AuthErrorCode.InvalidCredentials,
                     Errors = resetResult.Errors.Select(e => e.Description)
+                };
+            }
+
+            return new AuthServiceResult
+            {
+                ErrorCode = AuthErrorCode.Success,
+            };
+        }
+
+        public async Task<AuthServiceResult> ChangePasswordAsync(ChangePasswordDto model, string id)
+        {
+            var user = await _userManager.FindByIdAsync(id);
+
+            if (user == null)
+            {
+                return new AuthServiceResult
+                {
+                    ErrorCode = AuthErrorCode.InvalidCredentials,
+                };
+            }
+
+            var result = await _userManager.ChangePasswordAsync(user, model.CurrentPassword, model.NewPassword);
+
+            if (!result.Succeeded)
+            {
+                return new AuthServiceResult
+                {
+                    ErrorCode = AuthErrorCode.InvalidCredentials,
+                    //Message = string.Join(", ", result.Errors.Select(e => e.Description))
+                    Errors = result.Errors.Select(e => e.Description)
                 };
             }
 
@@ -313,6 +350,7 @@ namespace InnoShop.Services.AuthAPI.Services
             return new AuthServiceResult
             {
                 ErrorCode = AuthErrorCode.Success,
+                
             };
         }
 
@@ -347,6 +385,33 @@ namespace InnoShop.Services.AuthAPI.Services
         public async Task<AuthServiceResult> GetUserByEmailAsync(string email)
         {
             var user = await _userManager.FindByEmailAsync(email);
+
+            if (user == null)
+            {
+                return new AuthServiceResult
+                {
+                    ErrorCode = AuthErrorCode.InvalidUser,
+                };
+            }
+
+            var userDto = new UserDto
+            {
+                Id = user.Id,
+                Name = user.Name,
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber
+            };
+
+            return new AuthServiceResult
+            {
+                ErrorCode = AuthErrorCode.Success,
+                Result = user
+            };
+        }
+
+        public async Task<AuthServiceResult> GetUserByIdAsync(string id)
+        {
+            var user = await _userManager.FindByIdAsync(id);
 
             if (user == null)
             {

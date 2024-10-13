@@ -44,6 +44,7 @@ namespace InnoShop.Services.AuthAPI
             {
                 options.Filters.Add<ExceptionFilter>();
             });
+            // builder.Services.AddHttpContextAccessor();
             builder.Services.AddFluentValidationAutoValidation();
             builder.Services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
             builder.Services.AddScoped<IJwtTokenValidator, JwtTokenValidator>();
@@ -52,33 +53,8 @@ namespace InnoShop.Services.AuthAPI
             builder.Services.AddScoped<IDbInitializer, DbInitializer>();
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddValidatorsFromAssemblyContaining<EmailDtoValidator>();
-            builder.Services.AddSwaggerGen(options =>
-            {
-                options.AddSecurityDefinition(name: JwtBearerDefaults.AuthenticationScheme, securityScheme: new OpenApiSecurityScheme
-                {
-                    // default settings
-                    Name = "Authorization",
-                    Description = "Enter the Bearer Authorize string: `Bearer JWT-Token`",
-                    In = ParameterLocation.Header,
-                    Type = SecuritySchemeType.ApiKey,
-                    Scheme = "Bearer"
-                });
-                options.AddSecurityRequirement(new OpenApiSecurityRequirement
-                {
-                    {
-                        // default settings
-                        new OpenApiSecurityScheme
-                        {
-                            Reference = new OpenApiReference
-                            {
-                                Type = ReferenceType.SecurityScheme,
-                                Id = JwtBearerDefaults.AuthenticationScheme
-                            }
-                        }, new string[] {}
-                    }
-                });
-            });
-
+            builder.Services.ConfigureSwagger();
+            
             builder.AddAppAuthentication();
 
             var app = builder.Build();
@@ -92,6 +68,7 @@ namespace InnoShop.Services.AuthAPI
 
             app.UseHttpsRedirection();
             app.UseRouting();
+            
             // UseAuthentication added first
             app.UseAuthentication();
             app.UseAuthorization();

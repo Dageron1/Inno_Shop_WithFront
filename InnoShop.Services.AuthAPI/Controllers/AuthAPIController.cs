@@ -21,10 +21,12 @@ namespace InnoShop.Services.AuthAPI.Controllers
     public class AuthAPIController : ControllerBase
     {
         private readonly IAuthService _authService;
+        private readonly IConfiguration _configuration;
 
-        public AuthAPIController(IAuthService authService)
+        public AuthAPIController(IAuthService authService, IConfiguration configuration)
         {
             _authService = authService;
+            _configuration = configuration;
         }
 
         [HttpPost("users")]
@@ -98,7 +100,7 @@ namespace InnoShop.Services.AuthAPI.Controllers
             {
                 return Ok(responseDto);
             }
-
+            
             if (authServiceResult.ErrorCode == AuthErrorCode.EmailNotConfirmed)
             {
                 return StatusCode(403, responseDto);
@@ -134,7 +136,9 @@ namespace InnoShop.Services.AuthAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<ResponseDto>> ForgotPassword([FromBody] EmailDto model) 
         {
-            var authServiceResult = await _authService.GeneratePasswordResetTokenAsync(model.Email);
+            var emailMessageBuilder = CreatePasswordResetEmail();
+
+            var authServiceResult = await _authService.GeneratePasswordResetTokenAsync(model.Email, emailMessageBuilder);
 
             var responseDto = ConvertToResponseDto(authServiceResult);
 
@@ -156,6 +160,30 @@ namespace InnoShop.Services.AuthAPI.Controllers
             }
 
             var authServiceResult = await _authService.ResetPasswordAsync(model.Email, model.Token, model.NewPassword);
+
+            var responseDto = ConvertToResponseDto(authServiceResult);
+
+            if (authServiceResult.IsSuccess)
+            {
+                return Ok(responseDto);
+            }
+
+            return BadRequest(responseDto);
+        }
+
+        [Authorize]
+        [HttpPost("users/password/change")]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<ResponseDto>> ChangePassword([FromBody] ChangePasswordDto model)
+        {
+            if (model == null || string.IsNullOrEmpty(model.CurrentPassword) || string.IsNullOrEmpty(model.NewPassword))
+            {
+                return BadRequest(new ResponseDto { IsSuccess = false, Message = "Invalid request." });
+            }
+
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var authServiceResult = await _authService.ChangePasswordAsync(model, userId);
 
             var responseDto = ConvertToResponseDto(authServiceResult);
 
@@ -225,6 +253,30 @@ namespace InnoShop.Services.AuthAPI.Controllers
             return BadRequest(responseDto);
         }
 
+        [Authorize]
+        [HttpGet("users/{userId}")]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        public async Task<ActionResult<ResponseDto>> GetUserById(Guid userId)
+        {
+            var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (User.IsInRole(Role.Admin) || currentUserId == userId.ToString())
+            {
+                var authServiceResult = await _authService.GetUserByIdAsync(userId.ToString());
+
+                var responseDto = ConvertToResponseDto(authServiceResult);
+
+                if (responseDto.IsSuccess)
+                {
+                    return Ok(responseDto);
+                }
+
+                return BadRequest(responseDto);
+            }
+            return Forbid();
+        }
+
         [Authorize(Roles = Role.Admin)]
         [HttpDelete("users/{userId}")]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -250,12 +302,21 @@ namespace InnoShop.Services.AuthAPI.Controllers
 
         private Func<string, string> CreateEmailConfirmationMessageBuilder()
         {
-            var request = HttpContext.Request;
-            var host = $"{request.Scheme}://{request.Host}";
+            var mvcHost = _configuration["MvcAppUrl"];
             return (token) =>
             {
-                var confirmationLink = $"{host}/api/auth/users/confirm-email?token={WebUtility.UrlEncode(token)}";
-                return $"Please confirm your account by clicking this link: {confirmationLink}";
+                var confirmationLink = $"{mvcHost}/Auth/ConfirmEmail?token={WebUtility.UrlEncode(token)}";
+                return $"Please confirm your account by clicking this link: <a href='{confirmationLink}'>this link</a>.";
+            };
+        }
+
+        private Func<string, string, string> CreatePasswordResetEmail()
+        {
+            var mvcHost = _configuration["MvcAppUrl"];
+            return (token, email) =>
+            {
+                var confirmationLink = $"{mvcHost}/Auth/ResetPassword?token={WebUtility.UrlEncode(token)}&email={email}";
+                return $"Please reset you password by clicking this link: <a href='{confirmationLink}'>this link</a>.";
             };
         }
 

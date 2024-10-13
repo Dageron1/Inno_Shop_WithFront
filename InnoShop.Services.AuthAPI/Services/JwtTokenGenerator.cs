@@ -28,9 +28,9 @@ namespace InnoShop.Services.AuthAPI.Services
 
             var claimsList = new List<Claim>
             {
-                new Claim(JwtRegisteredClaimNames.Email, applicationUser.Email),
-                new Claim(JwtRegisteredClaimNames.Sub, applicationUser.Id),
-                new Claim(JwtRegisteredClaimNames.Name, applicationUser.UserName),
+                new Claim(JwtRegisteredClaimNames.Email, applicationUser.Email ?? ""),
+                new Claim(JwtRegisteredClaimNames.Sub, applicationUser.Id ?? ""),
+                new Claim(JwtRegisteredClaimNames.Name, applicationUser.UserName ?? ""),
             };
 
             claimsList.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
@@ -45,7 +45,9 @@ namespace InnoShop.Services.AuthAPI.Services
             };
 
             var token = tokenHandler.CreateToken(tokenDescriptor);
-            return tokenHandler.WriteToken(token);
+            var jwtToken = tokenHandler.WriteToken(token);
+
+            return jwtToken;
         }
 
         public string GenerateEmailConfirmationTokenAsync(string userId, string emailConfirmationToken)
