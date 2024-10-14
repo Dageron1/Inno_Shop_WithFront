@@ -1,10 +1,9 @@
-﻿using InnoShop.Services.ProductAPI.Models;
-using InnoShop.Services.ProductAPI.Models.Dto;
+﻿using InnoShop.Services.ProductAPI.Models.Dto;
 
 namespace InnoShop.Services.ProductAPI.Services.Interfaces
 {
     public interface IProductService
-    {   
+    {
         Task<ProductDto[]> GetAllAsync();
         Task<ProductDto?> GetById(int id);
         Task<ProductDto?> GetByName(string name);

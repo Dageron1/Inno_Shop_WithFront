@@ -190,7 +190,7 @@ namespace InnoShop.Services.ProductAPI.IntegrationTests
                 response.StatusCode.Should().Be(HttpStatusCode.OK);
 
                 var responseString = await response.Content.ReadAsStringAsync();
-                var responseDto = JsonConvert.DeserializeObject<ResponseDto>(responseString);
+                var responseDto = JsonConvert.DeserializeObject<Response>(responseString);
 
                 responseDto.IsSuccess.Should().BeTrue();
                 responseDto.Message.Should().Be("Products retrieved successfully.");
@@ -219,7 +219,7 @@ namespace InnoShop.Services.ProductAPI.IntegrationTests
             response.StatusCode.Should().Be(HttpStatusCode.NotFound);
 
             var responseString = await response.Content.ReadAsStringAsync();
-            var responseDto = JsonConvert.DeserializeObject<ResponseDto>(responseString);
+            var responseDto = JsonConvert.DeserializeObject<Response>(responseString);
 
             responseDto.IsSuccess.Should().BeFalse();
             responseDto.Message.Should().Be("No products found.");
@@ -251,7 +251,7 @@ namespace InnoShop.Services.ProductAPI.IntegrationTests
                 response.StatusCode.Should().Be(HttpStatusCode.OK);
 
                 var responseString = await response.Content.ReadAsStringAsync();
-                var responseDto = JsonConvert.DeserializeObject<ResponseDto>(responseString);
+                var responseDto = JsonConvert.DeserializeObject<Response>(responseString);
 
                 responseDto.IsSuccess.Should().BeTrue();
                 responseDto.Message.Should().Be("Product retrieved successfully.");
@@ -284,7 +284,7 @@ namespace InnoShop.Services.ProductAPI.IntegrationTests
             response.StatusCode.Should().Be(HttpStatusCode.NotFound);
 
             var responseString = await response.Content.ReadAsStringAsync();
-            var responseDto = JsonConvert.DeserializeObject<ResponseDto>(responseString);
+            var responseDto = JsonConvert.DeserializeObject<Response>(responseString);
 
             responseDto.IsSuccess.Should().BeFalse();
             responseDto.Message.Should().Be("Product not found.");
@@ -317,7 +317,7 @@ namespace InnoShop.Services.ProductAPI.IntegrationTests
                 response.StatusCode.Should().Be(HttpStatusCode.OK);
 
                 var responseString = await response.Content.ReadAsStringAsync();
-                var responseDto = JsonConvert.DeserializeObject<ResponseDto>(responseString);
+                var responseDto = JsonConvert.DeserializeObject<Response>(responseString);
 
                 responseDto.IsSuccess.Should().BeTrue();
                 responseDto.Message.Should().Be("Product retrieved successfully.");
@@ -339,7 +339,7 @@ namespace InnoShop.Services.ProductAPI.IntegrationTests
             response.StatusCode.Should().Be(HttpStatusCode.NotFound);
 
             var responseString = await response.Content.ReadAsStringAsync();
-            var responseDto = JsonConvert.DeserializeObject<ResponseDto>(responseString);
+            var responseDto = JsonConvert.DeserializeObject<Response>(responseString);
 
             responseDto.IsSuccess.Should().BeFalse();
             responseDto.Message.Should().Be("Product not found.");
@@ -394,7 +394,7 @@ namespace InnoShop.Services.ProductAPI.IntegrationTests
                 response.StatusCode.Should().Be(HttpStatusCode.OK);
 
                 var responseString = await response.Content.ReadAsStringAsync();
-                var responseDto = JsonConvert.DeserializeObject<ResponseDto>(responseString);
+                var responseDto = JsonConvert.DeserializeObject<Response>(responseString);
 
                 responseDto.IsSuccess.Should().BeTrue();
                 responseDto.Message.Should().Be("Product retrieved successfully.");
@@ -416,7 +416,7 @@ namespace InnoShop.Services.ProductAPI.IntegrationTests
             response.StatusCode.Should().Be(HttpStatusCode.NotFound);
 
             var responseString = await response.Content.ReadAsStringAsync();
-            var responseDto = JsonConvert.DeserializeObject<ResponseDto>(responseString);
+            var responseDto = JsonConvert.DeserializeObject<Response>(responseString);
 
             responseDto.IsSuccess.Should().BeFalse();
             responseDto.Message.Should().Be("Product not found.");
@@ -453,7 +453,7 @@ namespace InnoShop.Services.ProductAPI.IntegrationTests
                 response.StatusCode.Should().Be(HttpStatusCode.OK);
 
                 var responseString = await response.Content.ReadAsStringAsync();
-                var responseDto = JsonConvert.DeserializeObject<ResponseDto>(responseString);
+                var responseDto = JsonConvert.DeserializeObject<Response>(responseString);
 
                 responseDto.IsSuccess.Should().BeTrue();
                 responseDto.Message.Should().Be("Product created successfully.");
@@ -547,7 +547,7 @@ namespace InnoShop.Services.ProductAPI.IntegrationTests
                 response.StatusCode.Should().Be(HttpStatusCode.OK);
 
                 var responseString = await response.Content.ReadAsStringAsync();
-                var responseDto = JsonConvert.DeserializeObject<ResponseDto>(responseString);
+                var responseDto = JsonConvert.DeserializeObject<Response>(responseString);
 
                 responseDto.IsSuccess.Should().BeTrue();
                 responseDto.Message.Should().Be("The product was updated successfully.");
@@ -610,7 +610,7 @@ namespace InnoShop.Services.ProductAPI.IntegrationTests
                 response.StatusCode.Should().Be(HttpStatusCode.OK);
 
                 var responseString = await response.Content.ReadAsStringAsync();
-                var responseDto = JsonConvert.DeserializeObject<ResponseDto>(responseString);
+                var responseDto = JsonConvert.DeserializeObject<Response>(responseString);
 
                 responseDto.IsSuccess.Should().BeTrue();
                 responseDto.Message.Should().Be("The product was updated successfully.");
@@ -657,7 +657,7 @@ namespace InnoShop.Services.ProductAPI.IntegrationTests
                 response.StatusCode.Should().Be(HttpStatusCode.NotFound);
 
                 var responseString = await response.Content.ReadAsStringAsync();
-                var responseDto = JsonConvert.DeserializeObject<ResponseDto>(responseString);
+                var responseDto = JsonConvert.DeserializeObject<Response>(responseString);
 
                 responseDto.IsSuccess.Should().BeFalse();
                 responseDto.Message.Should().Be("Product not found.");
@@ -697,7 +697,7 @@ namespace InnoShop.Services.ProductAPI.IntegrationTests
                 response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
 
                 var responseString = await response.Content.ReadAsStringAsync();
-                var responseDto = JsonConvert.DeserializeObject<ResponseDto>(responseString);
+                var responseDto = JsonConvert.DeserializeObject<Response>(responseString);
 
                 responseDto.IsSuccess.Should().BeFalse();
                 responseDto.Message.Should().Be("Id in URL does not match ID in the model.");
@@ -750,7 +750,7 @@ namespace InnoShop.Services.ProductAPI.IntegrationTests
                 response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
 
                 var responseString = await response.Content.ReadAsStringAsync();
-                var responseDto = JsonConvert.DeserializeObject<ResponseDto>(responseString);
+                var responseDto = JsonConvert.DeserializeObject<Response>(responseString);
 
                 responseDto.IsSuccess.Should().BeFalse();
                 responseDto.Message.Should().Be("Access denied. You are not authorized to update this product.");
@@ -790,7 +790,7 @@ namespace InnoShop.Services.ProductAPI.IntegrationTests
                 // Assert
                 response.StatusCode.Should().Be(HttpStatusCode.OK);
                 var responseString = await response.Content.ReadAsStringAsync();
-                var responseDto = JsonConvert.DeserializeObject<ResponseDto>(responseString);
+                var responseDto = JsonConvert.DeserializeObject<Response>(responseString);
 
                 responseDto.IsSuccess.Should().BeTrue();
                 responseDto.Message.Should().Be("Product deleted successfully.");
@@ -823,7 +823,7 @@ namespace InnoShop.Services.ProductAPI.IntegrationTests
                 // Assert
                 response.StatusCode.Should().Be(HttpStatusCode.NotFound);
                 var responseString = await response.Content.ReadAsStringAsync();
-                var responseDto = JsonConvert.DeserializeObject<ResponseDto>(responseString);
+                var responseDto = JsonConvert.DeserializeObject<Response>(responseString);
 
                 responseDto.IsSuccess.Should().BeFalse();
                 responseDto.Message.Should().Be("Product not found.");
@@ -863,7 +863,7 @@ namespace InnoShop.Services.ProductAPI.IntegrationTests
                 // Assert
                 response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
                 var responseString = await response.Content.ReadAsStringAsync();
-                var responseDto = JsonConvert.DeserializeObject<ResponseDto>(responseString);
+                var responseDto = JsonConvert.DeserializeObject<Response>(responseString);
 
                 responseDto.IsSuccess.Should().BeFalse();
                 responseDto.Message.Should().Be("You are not the creator of this product. " +

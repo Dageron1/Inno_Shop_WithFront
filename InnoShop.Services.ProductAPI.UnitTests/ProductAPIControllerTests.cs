@@ -63,7 +63,7 @@ namespace InnoShop.Services.ProductAPI.UnitTests
 
             _productServiceMock.Setup(x => x.GetAllAsync()).ReturnsAsync(productsDto).Verifiable(Times.Once);
 
-            var responseDto = new ResponseDto
+            var responseDto = new Response
             {
                 IsSuccess = true,
                 Message = "Products retrieved successfully.",
@@ -78,7 +78,7 @@ namespace InnoShop.Services.ProductAPI.UnitTests
             okResult.Should().NotBeNull();
             okResult.StatusCode.Should().Be(200);
 
-            var response = okResult.Value as ResponseDto;
+            var response = okResult.Value as Response;
 
             response.Should().BeEquivalentTo(responseDto);
 
@@ -93,7 +93,7 @@ namespace InnoShop.Services.ProductAPI.UnitTests
 
             _productServiceMock.Setup(x => x.GetAllAsync()).ReturnsAsync(productsDto).Verifiable(Times.Once);
 
-            var responseDto = new ResponseDto
+            var responseDto = new Response
             {
                 IsSuccess = false,
                 Message = "No products found.",
@@ -108,7 +108,7 @@ namespace InnoShop.Services.ProductAPI.UnitTests
             notFoundResult.Should().NotBeNull();
             notFoundResult.StatusCode.Should().Be(404);
 
-            var response = notFoundResult.Value as ResponseDto;
+            var response = notFoundResult.Value as Response;
 
             response.Should().BeEquivalentTo(responseDto);
 
@@ -123,7 +123,7 @@ namespace InnoShop.Services.ProductAPI.UnitTests
 
             _productServiceMock.Setup(x => x.GetById(invalidProductId)).ReturnsAsync((ProductDto)null).Verifiable(Times.Once);
 
-            var expectedResponse = new ResponseDto
+            var expectedResponse = new Response
             {
                 IsSuccess = false,
                 Message = "Product not found.",
@@ -138,7 +138,7 @@ namespace InnoShop.Services.ProductAPI.UnitTests
             notFoundResult.Should().NotBeNull();
             notFoundResult.StatusCode.Should().Be(404);
 
-            var response = notFoundResult.Value as ResponseDto;
+            var response = notFoundResult.Value as Response;
 
             response.Should().BeEquivalentTo(expectedResponse);
             _productServiceMock.Verify();
@@ -156,7 +156,7 @@ namespace InnoShop.Services.ProductAPI.UnitTests
 
             _productServiceMock.Setup(x => x.GetById(1)).ReturnsAsync(productDto).Verifiable(Times.Once);
 
-            var expectedResult = new ResponseDto
+            var expectedResult = new Response
             {
                 IsSuccess = true,
                 Message = "Product retrieved successfully.",
@@ -171,7 +171,7 @@ namespace InnoShop.Services.ProductAPI.UnitTests
             okResult.Should().NotBeNull();
             okResult.StatusCode.Should().Be(200);
 
-            var response = okResult.Value as ResponseDto;
+            var response = okResult.Value as Response;
 
             response.Should().BeEquivalentTo(expectedResult);
             _productServiceMock.Verify();
@@ -185,7 +185,7 @@ namespace InnoShop.Services.ProductAPI.UnitTests
 
             _productServiceMock.Setup(x => x.GetByName(productName)).ReturnsAsync((ProductDto)null).Verifiable(Times.Once);
 
-            var expectedResult = new ResponseDto
+            var expectedResult = new Response
             {
                 IsSuccess = false,
                 Message = "Product not found.",
@@ -200,7 +200,7 @@ namespace InnoShop.Services.ProductAPI.UnitTests
             notFoundResult.Should().NotBeNull();
             notFoundResult.StatusCode.Should().Be(404);
 
-            var response = notFoundResult.Value as ResponseDto;
+            var response = notFoundResult.Value as Response;
 
             response.Should().BeEquivalentTo(expectedResult);
             _productServiceMock.Verify();
@@ -215,7 +215,7 @@ namespace InnoShop.Services.ProductAPI.UnitTests
 
             _productServiceMock.Setup(x => x.GetByName(productName)).ReturnsAsync(productDto).Verifiable(Times.Once);
 
-            var expectedResult = new ResponseDto
+            var expectedResult = new Response
             {
                 IsSuccess = true,
                 Message = "Product retrieved successfully.",
@@ -230,7 +230,7 @@ namespace InnoShop.Services.ProductAPI.UnitTests
             okResult.Should().NotBeNull();
             okResult.StatusCode.Should().Be(200);
 
-            var response = okResult.Value as ResponseDto;
+            var response = okResult.Value as Response;
 
             response.Should().BeEquivalentTo(expectedResult);
             _productServiceMock.Verify();
@@ -249,7 +249,7 @@ namespace InnoShop.Services.ProductAPI.UnitTests
 
             _productServiceMock.Setup(x => x.GetByCategory(categoryName)).ReturnsAsync(productsDto).Verifiable(Times.Once);
 
-            var expectedResult = new ResponseDto
+            var expectedResult = new Response
             {
                 IsSuccess = true,
                 Message = "Product retrieved successfully.",
@@ -264,7 +264,7 @@ namespace InnoShop.Services.ProductAPI.UnitTests
             okResult.Should().NotBeNull();
             okResult.StatusCode.Should().Be(200);
 
-            var response = okResult.Value as ResponseDto;
+            var response = okResult.Value as Response;
 
             response.Should().BeEquivalentTo(expectedResult);
             _productServiceMock.Verify();
@@ -277,7 +277,7 @@ namespace InnoShop.Services.ProductAPI.UnitTests
 
             var categoryName = "Non-existing Category";
 
-            var expectedResult = new ResponseDto
+            var expectedResult = new Response
             {
                 IsSuccess = false,
                 Message = "Product not found.",
@@ -294,7 +294,7 @@ namespace InnoShop.Services.ProductAPI.UnitTests
             notFoundResult.Should().NotBeNull();
             notFoundResult.StatusCode.Should().Be(404);
 
-            var response = notFoundResult.Value as ResponseDto;
+            var response = notFoundResult.Value as Response;
 
             response.Should().BeEquivalentTo(expectedResult);
             _productServiceMock.Verify();
@@ -325,7 +325,7 @@ namespace InnoShop.Services.ProductAPI.UnitTests
                 HttpContext = new DefaultHttpContext() { User = user }
             };
 
-            var expectedResult = new ResponseDto
+            var expectedResult = new Response
             {
                 IsSuccess = true,
                 Message = "Product created successfully.",
@@ -340,7 +340,7 @@ namespace InnoShop.Services.ProductAPI.UnitTests
             okResult.Should().NotBeNull();
             okResult.StatusCode.Should().Be(200);
 
-            var response = okResult.Value as ResponseDto;
+            var response = okResult.Value as Response;
 
             response.Should().BeEquivalentTo(expectedResult);
             _productServiceMock.Verify();
@@ -387,7 +387,7 @@ namespace InnoShop.Services.ProductAPI.UnitTests
                 ImageUrl = "https://example.com/image.jpg"
             };
 
-            var expectedResult = new ResponseDto
+            var expectedResult = new Response
             {
                 IsSuccess = false,
                 Message = "Id in URL does not match ID in the model."
@@ -409,7 +409,7 @@ namespace InnoShop.Services.ProductAPI.UnitTests
             // Assert
             var objectResult = result.Result as BadRequestObjectResult;
             objectResult.StatusCode.Should().Be(400);
-            var response = objectResult.Value as ResponseDto;
+            var response = objectResult.Value as Response;
 
             response.Should().BeEquivalentTo(expectedResult);
         }
@@ -433,7 +433,7 @@ namespace InnoShop.Services.ProductAPI.UnitTests
 
             _productServiceMock.Setup(x => x.GetById(1)).ReturnsAsync((ProductDto)null).Verifiable(Times.Once);
 
-            var expectedResult = new ResponseDto
+            var expectedResult = new Response
             {
                 IsSuccess = false,
                 Message = "Product not found.",
@@ -448,7 +448,7 @@ namespace InnoShop.Services.ProductAPI.UnitTests
             notFoundResult.Should().NotBeNull();
             notFoundResult.StatusCode.Should().Be(404);
 
-            var response = notFoundResult.Value as ResponseDto;
+            var response = notFoundResult.Value as Response;
 
             response.Should().BeEquivalentTo(expectedResult);
             _productServiceMock.Verify();
@@ -475,7 +475,7 @@ namespace InnoShop.Services.ProductAPI.UnitTests
                 HttpContext = new DefaultHttpContext { User = claimsPrincipal }
             };
 
-            var expectedResult = new ResponseDto
+            var expectedResult = new Response
             {
                 IsSuccess = true,
                 Message = "The product was updated successfully.",
@@ -490,7 +490,7 @@ namespace InnoShop.Services.ProductAPI.UnitTests
             okResult.Should().NotBeNull();
             okResult.StatusCode.Should().Be(200);
 
-            var response = okResult.Value as ResponseDto;
+            var response = okResult.Value as Response;
 
             response.Should().BeEquivalentTo(expectedResult);
             _productServiceMock.Verify(x => x.GetById(1));
@@ -531,7 +531,7 @@ namespace InnoShop.Services.ProductAPI.UnitTests
                 HttpContext = new DefaultHttpContext { User = claimsPrincipal }
             };
 
-            var expectedResult = new ResponseDto
+            var expectedResult = new Response
             {
                 IsSuccess = true,
                 Message = "The product was updated successfully.",
@@ -546,7 +546,7 @@ namespace InnoShop.Services.ProductAPI.UnitTests
             okResult.Should().NotBeNull();
             okResult.StatusCode.Should().Be(200);
 
-            var response = okResult.Value as ResponseDto;
+            var response = okResult.Value as Response;
 
             response.Should().BeEquivalentTo(expectedResult);
             _productServiceMock.Verify(x => x.GetById(1), Times.Once);
@@ -586,7 +586,7 @@ namespace InnoShop.Services.ProductAPI.UnitTests
                 HttpContext = new DefaultHttpContext { User = claimsPrincipal }
             };
 
-            var expectedResult = new ResponseDto
+            var expectedResult = new Response
             {
                 IsSuccess = false,
                 Message = "Failed to update the product.",
@@ -601,7 +601,7 @@ namespace InnoShop.Services.ProductAPI.UnitTests
             objectResult.Should().NotBeNull();
             objectResult.StatusCode.Should().Be(400);
 
-            var response = objectResult.Value as ResponseDto;
+            var response = objectResult.Value as Response;
 
             response.Should().BeEquivalentTo(expectedResult);
             _productServiceMock.Verify(x => x.GetById(1), Times.Once);
@@ -638,7 +638,7 @@ namespace InnoShop.Services.ProductAPI.UnitTests
             {
                 HttpContext = new DefaultHttpContext { User = claimsPrincipal }
             };
-            var expectedResult = new ResponseDto
+            var expectedResult = new Response
             {
                 IsSuccess = false,
                 Message = "Failed to update the product.",
@@ -653,7 +653,7 @@ namespace InnoShop.Services.ProductAPI.UnitTests
             objectResult.Should().NotBeNull();
             objectResult.StatusCode.Should().Be(400);
 
-            var response = objectResult.Value as ResponseDto;
+            var response = objectResult.Value as Response;
 
             response.Should().BeEquivalentTo(expectedResult);
             _productServiceMock.Verify(x => x.GetById(1), Times.Once);
@@ -679,7 +679,7 @@ namespace InnoShop.Services.ProductAPI.UnitTests
                 HttpContext = new DefaultHttpContext { User = claimsPrincipal }
             };
 
-            var expectedResult = new ResponseDto
+            var expectedResult = new Response
             {
                 IsSuccess = false,
                 Message = "Access denied. You are not authorized to update this product.",
@@ -694,7 +694,7 @@ namespace InnoShop.Services.ProductAPI.UnitTests
             objectResult.Should().NotBeNull();
             objectResult.StatusCode.Should().Be(403);
 
-            var response = objectResult.Value as ResponseDto;
+            var response = objectResult.Value as Response;
 
             response.Should().BeEquivalentTo(expectedResult);
             _productServiceMock.Verify();
@@ -718,7 +718,7 @@ namespace InnoShop.Services.ProductAPI.UnitTests
                 HttpContext = new DefaultHttpContext { User = claimsPrincipal }
             };
 
-            var expectedResult = new ResponseDto
+            var expectedResult = new Response
             {
                 IsSuccess = false,
                 Message = "Product not found."
@@ -729,7 +729,7 @@ namespace InnoShop.Services.ProductAPI.UnitTests
 
             // Assert
             var notFoundResult = result.Result as NotFoundObjectResult;
-            var response = notFoundResult.Value as ResponseDto;
+            var response = notFoundResult.Value as Response;
             response.Should().BeEquivalentTo(expectedResult);
             _productServiceMock.Verify();
         }
@@ -741,7 +741,7 @@ namespace InnoShop.Services.ProductAPI.UnitTests
             int productId = 1;
             string userId = "test-user-id";
 
-            var expectedResult = new ResponseDto
+            var expectedResult = new Response
             {
                 IsSuccess = false,
                 Message = "You are not the creator of this product. " +
@@ -771,7 +771,7 @@ namespace InnoShop.Services.ProductAPI.UnitTests
             // Assert
             var forbiddenResult = result.Result as ObjectResult;
             forbiddenResult.StatusCode.Should().Be(403);
-            var response = forbiddenResult.Value as ResponseDto;
+            var response = forbiddenResult.Value as Response;
             response.Should().BeEquivalentTo(expectedResult);
             _productServiceMock.Verify();
         }
@@ -783,7 +783,7 @@ namespace InnoShop.Services.ProductAPI.UnitTests
             int productId = 1;
             string role = "ADMIN";
 
-            var expectedResult = new ResponseDto
+            var expectedResult = new Response
             {
                 IsSuccess = true,
                 Message = "Product deleted successfully."
@@ -810,7 +810,7 @@ namespace InnoShop.Services.ProductAPI.UnitTests
             // Assert
             var okResult = result.Result as OkObjectResult;
             okResult.StatusCode.Should().Be(200);
-            var response = okResult.Value as ResponseDto;
+            var response = okResult.Value as Response;
             response.Should().BeEquivalentTo(expectedResult);
 
             _productServiceMock.Verify(p => p.GetById(productId), Times.Once);

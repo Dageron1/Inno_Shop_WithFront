@@ -1,10 +1,8 @@
-﻿using InnoShop.Services.ProductAPI.Models.Dto;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
-using System;
+using System.Net;
 
 namespace InnoShop.Services.ProductAPI.Filters
 {
@@ -14,49 +12,33 @@ namespace InnoShop.Services.ProductAPI.Filters
         {
             var exception = context.Exception;
 
-            ResponseDto response;
-            int statusCode;
-
+            HttpStatusCode statusCode;
+            var message = string.Empty;
+            
             if (exception is DbUpdateException dbUpdateException)
             {
-                statusCode = 500;
-                response = new ResponseDto
-                {
-                    IsSuccess = false,
-                    Message = $"An error occurred while updating the database: {dbUpdateException.InnerException?.Message ?? dbUpdateException.Message}",
-                };
+                statusCode = HttpStatusCode.InternalServerError;
+                message = $"An error occurred while updating the database: {dbUpdateException.InnerException?.Message ?? dbUpdateException.Message}";
             }
             else if (exception is DbUpdateConcurrencyException)
             {
-                statusCode = 409;
-                response = new ResponseDto
-                {
-                    IsSuccess = false,
-                    Message = "A concurrency conflict occurred while updating the database.",
-                };
+                statusCode = HttpStatusCode.Conflict;
+                message = "A concurrency conflict occurred while updating the database.";
             }
             else if (exception is SqlException sqlException)
             {
-                statusCode = 500;
-                response = new ResponseDto
-                {
-                    IsSuccess = false,
-                    Message = $"A database error occurred: {sqlException.Message}",
-                };
+                statusCode = HttpStatusCode.InternalServerError;
+                message = $"A database error occurred: {sqlException.Message}";
             }
             else
             {
-                statusCode = 500;
-                response = new ResponseDto
-                {
-                    IsSuccess = false,
-                    Message = $"An unexpected error occurred: {exception.Message}",
-                };
+                statusCode = HttpStatusCode.InternalServerError;
+                message = $"An unexpected error occurred: {exception.Message}";
             }
 
-            context.Result = new ObjectResult(response)
+            context.Result = new ObjectResult(message)
             {
-                StatusCode = statusCode
+                StatusCode = (int)statusCode
             };
 
             context.ExceptionHandled = true;

@@ -26,6 +26,7 @@ namespace InnoShop.Services.ProductAPI.Services
             {
                 return Array.Empty<ProductDto>();
             }
+
             var productsDto = _mapper.Map<ProductDto[]>(products);
 
             return productsDto;
@@ -125,7 +126,7 @@ namespace InnoShop.Services.ProductAPI.Services
             if (product != null)
             {
                 _db.Products.Remove(product);
-                await _db.SaveChangesAsync();   
+                await _db.SaveChangesAsync();
             }
         }
     }

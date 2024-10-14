@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace InnoShop.Services.ProductAPI.Models.Dto
+﻿namespace InnoShop.Services.ProductAPI.Models.Dto
 {
     public class ProductDto
     {
