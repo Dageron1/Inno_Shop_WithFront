@@ -17,6 +17,9 @@ public static class Program
     public static async Task Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
+        // в папке Extensions поменять названия добавива слово ServiceCollectionExtensions например 
+        // миграции переименовать
+
 
         builder.Services.AddProductServices(builder.Configuration);
 

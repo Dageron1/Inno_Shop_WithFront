@@ -7,9 +7,6 @@ namespace InnoShop.Services.ProductAPI.Validators
     {
         public ProductDtoValidator()
         {
-            //RuleFor(x => x.ProductId)
-            //.GreaterThanOrEqualTo(0).WithMessage("ProductId cannot be a negative number.");
-
             RuleFor(x => x.Name)
                 .NotEmpty().WithMessage("Product name is required.")
                 .Length(3, 100).WithMessage("Product name must be between 3 and 100 characters.")
@@ -33,10 +30,7 @@ namespace InnoShop.Services.ProductAPI.Validators
 
             RuleFor(x => x.Price)
                 .GreaterThan(0).WithMessage("Price must be greater than 0.");
-
         }
-
-        // Проверка на валидность URL
         private bool BeAValidUrl(string imageUrl)
         {
             return Uri.TryCreate(imageUrl, UriKind.Absolute, out var _);

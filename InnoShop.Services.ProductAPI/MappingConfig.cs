@@ -4,6 +4,7 @@ using InnoShop.Services.ProductAPI.Models.Dto;
 
 namespace InnoShop.Services.ProductAPI
 {
+    // посмотреть подход с конструтором и валидация всех свойств в конструкторе
     public class MappingConfig
     {
         public static MapperConfiguration RegisterMaps()

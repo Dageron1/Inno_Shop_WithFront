@@ -2,6 +2,7 @@
 
 namespace InnoShop.Services.ProductAPI.Validators
 {
+    // rename
     public class StringValidator : AbstractValidator<string>
     {
         public StringValidator()

@@ -4,6 +4,7 @@ namespace InnoShop.Services.ProductAPI.Models
 {
     public class Product
     {
+        // FluentAPI использовать вместо атрибутов 
         [Key]
         public int ProductId { get; set; }
         [Required]

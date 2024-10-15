@@ -21,7 +21,7 @@ namespace InnoShop.Services.AuthAPI.UnitTests
     public class AuthAPIControllerTests
     {
         private Mock<IAuthService> _authServiceMock;
-        private AuthAPIController _authAPIController;
+        private AuthApiController _authAPIController;
         private Mock<HttpContext> _httpContextMock;
         private Mock<HttpRequest> _httpRequestMock;
 
@@ -29,7 +29,7 @@ namespace InnoShop.Services.AuthAPI.UnitTests
         public void SetUp()
         {
             _authServiceMock = new Mock<IAuthService>();
-            _authAPIController = new AuthAPIController(_authServiceMock.Object);
+            _authAPIController = new AuthApiController(_authServiceMock.Object);
 
             _httpContextMock = new Mock<HttpContext>();
             _httpRequestMock = new Mock<HttpRequest>();

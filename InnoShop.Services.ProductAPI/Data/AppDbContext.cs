@@ -13,16 +13,6 @@ namespace InnoShop.Services.ProductAPI.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-
-            //modelBuilder.Entity<Product>().HasData(new Product
-            //{
-            //    ProductId = 1,
-            //    Name = "IPhone 37",
-            //    Price = 130,
-            //    Description = "Ultra modern new phone with A14383 processor, and 25w charger, not included :( !!!",
-            //    ImageUrl = "https://placeholder.co/600x400",
-            //    CategoryName = "Phone"   
-            //});
         }
     }
 }

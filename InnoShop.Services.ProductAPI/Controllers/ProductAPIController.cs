@@ -49,6 +49,7 @@ public class ProductApiController : ControllerBase
     {
         var product = await _productService.GetById(id);
 
+        // isNotNull
         if (product == null)
         {
             return NoContent();
@@ -107,6 +108,7 @@ public class ProductApiController : ControllerBase
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    // убрать Response и оставить Product
     public async Task<ActionResult<Response<ProductDto>>> Post([FromBody] ProductDto productDto)
     {
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -164,6 +166,8 @@ public class ProductApiController : ControllerBase
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    // вынести бизнес логику в сервис
+    // 
     public async Task<ActionResult<Response<ProductDto>>> Delete(int id)
     {
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;

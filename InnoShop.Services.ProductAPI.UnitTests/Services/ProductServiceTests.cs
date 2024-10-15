@@ -27,6 +27,8 @@ namespace InnoShop.Services.ProductAPI.UnitTests.Services
         private ProductDbContext _dbContext;
         private IMapper _mapper;
         private ProductService _productService;
+        // лучше сделать мок дб контекста на эксепшен
+        // и проверка вызова метода
 
         [SetUp]
         public void SetUp()
