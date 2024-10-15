@@ -11,10 +11,10 @@
     <div class="container d-flex align-items-center justify-content-center" style="min-height: 100vh;">
         <div class="row text-center w-100">
             <div class="d-flex justify-content-center">
-                <div class="card rounded-3 shadow border-0" style="width: 25rem;">
+                <div class="card rounded-3 shadow border-0 mt-5" style="width: 25rem;">
                     <img class="card-img-top rounded-top" src="~/images/LoginImage/bg-1.jpg" alt="" style="margin-bottom: 0;" />
                     <div class="card-body p-5">
-                        <!-- Зарезервируем место для сообщений с помощью min-height -->
+
                         <div style="position: relevant; top: 37%; left: 5%; width: 90%; z-index: 1;">
                             @if (TempData["success"] != null)
                             {
@@ -22,7 +22,6 @@
                                     @TempData["success"]
                                 </div>
                             }
-
                             @if (TempData["error"] != null)
                             {
                                 <div class="alert alert-danger" style="font-size: 14px; padding: 5px 10px;">
@@ -37,7 +36,6 @@
                             </div>
                         </div>
 
-                        <!-- Форма для входа -->
                         <form id="account" method="post" class="mt-1">
                             <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
                             <div class="form-floating mb-3">
