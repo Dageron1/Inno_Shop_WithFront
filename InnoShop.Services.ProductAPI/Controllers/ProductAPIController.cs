@@ -2,6 +2,7 @@
 using InnoShop.Services.ProductAPI.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Net;
 
 namespace InnoShop.Services.ProductAPI.Controllers;
 
@@ -23,12 +24,13 @@ public class ProductApiController : ControllerBase
     {
         var products = await _productService.GetAllAsync();
 
-        if (products.Length == 0)
-        {
-            return NoContent();
-        }
+        //if (products.Length == 0)
+        //{
+        //    return NoContent();
+        //}
 
-        return Ok(products);
+        //return Ok(products);
+        return products.Length > 0 ? Ok(products) : NoContent();
     }
 
     [HttpGet]
@@ -85,9 +87,11 @@ public class ProductApiController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<ProductDto>> Post([FromBody] ProductDto productDto)
     {
+        // ui logic
+        productDto.ProductId = 0;
         var product = await _productService.CreateAsync(productDto);
 
-        return StatusCode(201, product);
+        return StatusCode(StatusCodes.Status201Created, product);
     }
 
     [Authorize]

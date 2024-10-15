@@ -16,6 +16,6 @@ namespace InnoShop.Services.ProductAPI.Models
         [Range(1, 1000)]
         public double? Price { get; set; }
 
-        public string CreatedByUserId { get; set; } = "";
+        public string CreatedByUserId { get; set; } = string.Empty;
     }
 }

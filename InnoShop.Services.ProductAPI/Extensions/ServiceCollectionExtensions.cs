@@ -28,7 +28,6 @@ public static class ServiceCollectionExtensions
         services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
         services.AddScoped<IProductService, ProductService>();
-        services.AddScoped<ILinkService, LinkService>();
         services.AddScoped<IUserService, UserService>();
 
         services.AddControllers(options =>
@@ -55,7 +54,7 @@ public static class ServiceCollectionExtensions
                                 Type = ReferenceType.SecurityScheme,
                                 Id = JwtBearerDefaults.AuthenticationScheme
                             }
-                        }, new string[] {}
+                        }, Array.Empty<string>()
                     }
                 });
         });

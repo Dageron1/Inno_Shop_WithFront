@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using AutoMapper.QueryableExtensions;
 using InnoShop.Services.ProductAPI.Data;
 using InnoShop.Services.ProductAPI.Models;
 using InnoShop.Services.ProductAPI.Models.Dto;
@@ -9,97 +10,54 @@ namespace InnoShop.Services.ProductAPI.Services;
 
 public class ProductService : IProductService
 {
-    private readonly ProductDbContext _db;
+    private readonly ProductDbContext _dbContext;
     private readonly IMapper _mapper;
     private readonly IUserService _userService;
 
-    public ProductService(ProductDbContext db, IMapper mapper, IUserService userService)
+    public ProductService(ProductDbContext dbContext, IMapper mapper, IUserService userService)
     {
-        _db = db;
+        _dbContext = dbContext;
         _mapper = mapper;
         _userService = userService;
     }
 
-    public async Task<ProductDto[]> GetAllAsync()
+    public Task<ProductDto[]> GetAllAsync()
     {
-        var products = await _db.Products.AsNoTracking().ToArrayAsync();
-
-        if (products == null || !products.Any())
-        {
-            return Array.Empty<ProductDto>();
-        }
-
-        var productsDto = _mapper.Map<ProductDto[]>(products);
-
-        return productsDto;
+        // to avoid unnecessary state machine allocation (sync task return)
+        return GetAllProductsDto().ToArrayAsync();
     }
 
-    public async Task<ProductDto?> GetById(int id)
+    public Task<ProductDto?> GetById(int id)
     {
-        var product = await _db.Products.AsNoTracking().FirstOrDefaultAsync(p => p.ProductId == id);
-
-        if (product == null)
-        {
-            return null;
-        }
-
-        return _mapper.Map<ProductDto>(product);
+        return GetAllProductsDto().FirstOrDefaultAsync(p => p.ProductId == id);
     }
 
-    public async Task<ProductDto?> GetByName(string name)
+    public Task<ProductDto?> GetByName(string name)
     {
-        if (string.IsNullOrWhiteSpace(name))
-        {
-            return null;
-        }
-
-        var product = await _db.Products.AsNoTracking().FirstOrDefaultAsync(p => p.Name == name);
-
-        if (product == null)
-        {
-            return null;
-        }
-
-        return _mapper.Map<ProductDto>(product);
+        return GetAllProductsDto().FirstOrDefaultAsync(p => p.Name == name);
     }
 
-    public async Task<ProductDto[]> GetByCategory(string category)
+    public Task<ProductDto[]> GetByCategory(string category)
     {
-        if (string.IsNullOrWhiteSpace(category))
-        {
-            return Array.Empty<ProductDto>();
-        }
-
-        var products = await _db.Products.Where(x => x.CategoryName == category).AsNoTracking().ToArrayAsync();
-
-        if (products.Length == 0)
-        {
-            return Array.Empty<ProductDto>();
-        }
-        var productsDto = _mapper.Map<ProductDto[]>(products);
-
-        return productsDto;
+        return GetAllProductsDto().Where(x => x.CategoryName == category).ToArrayAsync();
     }
 
     public async Task<ProductDto> CreateAsync(ProductDto productDto)
     {
-        productDto.ProductId = 0;
-
         var userId = _userService.GetCurrentUserId();
         var product = _mapper.Map<Product>(productDto);
         product.CreatedByUserId = userId;
 
-        _db.Products.Add(product);
+        _dbContext.Products.Add(product);
 
-        await _db.SaveChangesAsync();
+        await _dbContext.SaveChangesAsync();
 
-        var result = _mapper.Map<ProductDto>(product);
-        return result;
+        return _mapper.Map<ProductDto>(product);
     }
 
-    public async Task<ProductDto> UpdateAsync(ProductDto productDto)
+    public async Task<ProductDto?> UpdateAsync(ProductDto productDto)
     {
-        var productFromDb = await _db.Products.FirstOrDefaultAsync(p => p.ProductId == productDto.ProductId);
+        var productFromDb = await _dbContext.Products.FirstOrDefaultAsync(p => p.ProductId == productDto.ProductId);
 
         if (productFromDb is null)
         {
@@ -115,23 +73,14 @@ public class ProductService : IProductService
 
         _mapper.Map(productDto, productFromDb);
 
-        try
-        {
-            await _db.SaveChangesAsync();
+        await _dbContext.SaveChangesAsync();
 
-        }
-        catch (DbUpdateException)
-        {
-            await _db.Entry(productFromDb).ReloadAsync();
-            throw;
-        }
-        var updatedProductDto = _mapper.Map<ProductDto>(productFromDb);
-        return updatedProductDto;
+        return _mapper.Map<ProductDto>(productFromDb);
     }
 
     public async Task DeleteAsync(int id)
     {
-        var productFromDb = await _db.Products.FirstOrDefaultAsync(p => p.ProductId == id);
+        var productFromDb = await _dbContext.Products.FirstOrDefaultAsync(p => p.ProductId == id);
 
         if (productFromDb is null)
         {
@@ -146,7 +95,12 @@ public class ProductService : IProductService
             throw new UnauthorizedAccessException("You do not have permission to delete this product.");
         }
 
-        _db.Products.Remove(productFromDb);
-        await _db.SaveChangesAsync();
+        _dbContext.Products.Remove(productFromDb);
+        await _dbContext.SaveChangesAsync();
+    }
+
+    private IQueryable<ProductDto> GetAllProductsDto() 
+    {
+        return _dbContext.Products.ProjectTo<ProductDto>(_mapper.ConfigurationProvider);
     }
 }

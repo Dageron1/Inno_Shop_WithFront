@@ -16,6 +16,7 @@
         UserAlreadyExists,
         BadRequest,
         InvalidData,
+        Forbid,
         Conflict
     }
 }

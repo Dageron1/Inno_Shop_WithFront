@@ -14,31 +14,29 @@ namespace InnoShop.Services.ProductAPI.Filters
 
             HttpStatusCode statusCode;
             var message = string.Empty;
-            
-            if (exception is DbUpdateException dbUpdateException)
+
+            switch (exception)
             {
-                statusCode = HttpStatusCode.InternalServerError;
-                message = $"An error occurred while updating the database: {dbUpdateException.InnerException?.Message ?? dbUpdateException.Message}";
-            }
-            else if (exception is DbUpdateConcurrencyException)
-            {
-                statusCode = HttpStatusCode.Conflict;
-                message = "A concurrency conflict occurred while updating the database.";
-            }
-            else if (exception is UnauthorizedAccessException)
-            {
-                statusCode = HttpStatusCode.Forbidden;
-                message = "You do not have permission to update this product.";
-            }
-            else if (exception is SqlException sqlException)
-            {
-                statusCode = HttpStatusCode.InternalServerError;
-                message = $"A database error occurred: {sqlException.Message}";
-            }
-            else
-            {
-                statusCode = HttpStatusCode.InternalServerError;
-                message = $"An unexpected error occurred: {exception.Message}";
+                case DbUpdateConcurrencyException:
+                    statusCode = HttpStatusCode.Conflict;
+                    message = "A concurrency conflict occurred while updating the database.";
+                    break;
+                case DbUpdateException dbUpdateException:
+                    statusCode = HttpStatusCode.InternalServerError;
+                    message = $"An error occurred while updating the database: {dbUpdateException.InnerException?.Message ?? dbUpdateException.Message}";
+                    break;
+                case UnauthorizedAccessException:
+                    statusCode = HttpStatusCode.Forbidden;
+                    message = "You do not have permission to update this product.";
+                    break;
+                case SqlException sqlException:
+                    statusCode = HttpStatusCode.InternalServerError;
+                    message = $"A database error occurred: {sqlException.Message}";
+                    break; 
+                default:
+                    statusCode = HttpStatusCode.InternalServerError;
+                    message = $"An unexpected error occurred: {exception.Message}";
+                    break;
             }
 
             context.Result = new ObjectResult(message)

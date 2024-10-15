@@ -17,7 +17,8 @@ public class AuthService : IAuthService
     private readonly IJwtTokenGenerator _jwtTokenGenerator;
     private readonly IJwtTokenValidator _jwtTokenValidator;
     private readonly IEmailSender _emailSender;
-    private readonly IConfiguration _configuration;
+    private readonly IEmailMessageBuilder _emailMessageBuilder;
+    private readonly IUserService _userService;
 
     public AuthService(
         UserManager<ApplicationUser> userManager,
@@ -25,17 +26,19 @@ public class AuthService : IAuthService
         IJwtTokenGenerator jwtTokenGenerator,
         IJwtTokenValidator jwtTokenValidator,
         IEmailSender emailSender,
-        IConfiguration configuration)
+        IEmailMessageBuilder emailMessageBuilder,
+        IUserService userService)
     {
         _userManager = userManager;
         _roleManager = roleManager;
         _jwtTokenGenerator = jwtTokenGenerator;
         _jwtTokenValidator = jwtTokenValidator;
         _emailSender = emailSender;
-        _configuration = configuration;
+        _emailMessageBuilder = emailMessageBuilder;
+        _userService = userService;
     }
 
-    public async Task<AuthServiceResult> Register(RegistrationRequestDto registrationRequestDto, Func<string, string> emailMessageBuilder)
+    public async Task<AuthServiceResult> Register(RegistrationRequestDto registrationRequestDto)
     {
         var existingUser = await _userManager.FindByEmailAsync(registrationRequestDto.Email.ToLower());
 
@@ -47,8 +50,6 @@ public class AuthService : IAuthService
                 Errors =  new[] { "User with this email already exists." }
             };
         }
-
-        var roleName = Role.Admin;
 
         ApplicationUser applicationUser = new()
         {
@@ -63,6 +64,7 @@ public class AuthService : IAuthService
 
         if (result.Succeeded)
         {
+            var roleName = Role.User;
             if (!await _roleManager.RoleExistsAsync(roleName))
             {
                 await _roleManager.CreateAsync(new IdentityRole(roleName));
@@ -70,9 +72,7 @@ public class AuthService : IAuthService
 
             await _userManager.AddToRoleAsync(applicationUser, roleName);
 
-            await SendEmailConfirmationAsync(applicationUser.Email, emailMessageBuilder);
-
-            //var userToReturn = await _userManager.FindByEmailAsync(applicationUser.Email.ToLower());
+            await SendEmailConfirmationAsync(applicationUser.Email);
 
             var userDto = new UserDto
             {
@@ -94,7 +94,7 @@ public class AuthService : IAuthService
         };
     }
 
-    public async Task<AuthServiceResult> SendEmailConfirmationAsync(string email, Func<string, string> emailMessageBuilder)
+    public async Task<AuthServiceResult> SendEmailConfirmationAsync(string email)
     {
         var user = await _userManager.FindByEmailAsync(email);
 
@@ -118,7 +118,7 @@ public class AuthService : IAuthService
 
         var emailConfirmationToken = _jwtTokenGenerator.GenerateEmailConfirmationTokenAsync(user.Id, token);
 
-        var emailMessage = emailMessageBuilder(emailConfirmationToken);
+        var emailMessage = _emailMessageBuilder.BuildConfirmationMessage(emailConfirmationToken);
 
         await _emailSender.SendEmailAsync(user.Email, "Confirm your email",
             $"{emailMessage}");
@@ -184,7 +184,7 @@ public class AuthService : IAuthService
     {
         var applicationUser = await _userManager.FindByEmailAsync(loginRequestDto.Email);
 
-        if (applicationUser == null)
+        if (applicationUser is null)
         {
             return new AuthServiceResult { ErrorCode = AuthErrorCode.InvalidUser };
         }
@@ -238,11 +238,11 @@ public class AuthService : IAuthService
         };
     }
 
-    public async Task<AuthServiceResult> GeneratePasswordResetTokenAsync(string email, Func<string, string, string> emailMessageBuilder)
+    public async Task<AuthServiceResult> GeneratePasswordResetTokenAsync(string email)
     {
         var user = await _userManager.FindByEmailAsync(email);
 
-        if (user == null)
+        if (user is null)
         {
             return new AuthServiceResult
             {
@@ -252,7 +252,7 @@ public class AuthService : IAuthService
 
         var token = await _userManager.GeneratePasswordResetTokenAsync(user);
 
-        var emailMessage = emailMessageBuilder(token,email);
+        var emailMessage = _emailMessageBuilder.BuildPasswordResetMessage(token, email);
 
         await _emailSender.SendEmailAsync(email, "Password Reset", emailMessage);
 
@@ -266,7 +266,7 @@ public class AuthService : IAuthService
     {
         var user = await _userManager.FindByEmailAsync(email.ToLower());
 
-        if (user == null)
+        if (user is null)
         {
             return new AuthServiceResult
             {
@@ -291,9 +291,10 @@ public class AuthService : IAuthService
         };
     }
 
-    public async Task<AuthServiceResult> ChangePasswordAsync(ChangePasswordDto model, string id)
+    public async Task<AuthServiceResult> ChangePasswordAsync(ChangePasswordDto model)
     {
-        var user = await _userManager.FindByIdAsync(id);
+        var userId = _userService.GetCurrentUserId();
+        var user = await _userManager.FindByIdAsync(userId);
 
         if (user == null)
         {
@@ -323,15 +324,18 @@ public class AuthService : IAuthService
 
     public async Task<AuthServiceResult> UpdateUserAsync(string userId, UpdateUserDto updateUserDto)
     {
-        var user = await _userManager.FindByIdAsync(userId);
+        var currentUserId = _userService.GetCurrentUserId();
+        var isAdmin = _userService.IsCurrentUserAdmin();
 
-        if (user == null)
+        if (currentUserId != userId && !isAdmin)
         {
             return new AuthServiceResult
             {
-                ErrorCode = AuthErrorCode.InvalidUser
+                ErrorCode = AuthErrorCode.Forbid,
             };
         }
+
+        var user = await _userManager.FindByIdAsync(userId);
 
         user.PhoneNumber = updateUserDto.PhoneNumber ?? user.PhoneNumber;
         user.Name = updateUserDto.Name ?? user.Name;
@@ -350,7 +354,6 @@ public class AuthService : IAuthService
         return new AuthServiceResult
         {
             ErrorCode = AuthErrorCode.Success,
-            
         };
     }
 
@@ -386,34 +389,7 @@ public class AuthService : IAuthService
     {
         var user = await _userManager.FindByEmailAsync(email);
 
-        if (user == null)
-        {
-            return new AuthServiceResult
-            {
-                ErrorCode = AuthErrorCode.InvalidUser,
-            };
-        }
-
-        var userDto = new UserDto
-        {
-            Id = user.Id,
-            Name = user.Name,
-            Email = user.Email,
-            PhoneNumber = user.PhoneNumber
-        };
-
-        return new AuthServiceResult
-        {
-            ErrorCode = AuthErrorCode.Success,
-            Result = user
-        };
-    }
-
-    public async Task<AuthServiceResult> GetUserByIdAsync(string id)
-    {
-        var user = await _userManager.FindByIdAsync(id);
-
-        if (user == null)
+        if (user is null)
         {
             return new AuthServiceResult
             {
@@ -436,11 +412,41 @@ public class AuthService : IAuthService
         };
     }
 
+    public async Task<AuthServiceResult> GetUserByIdAsync(string userId)
+    {
+        var currentUserId = _userService.GetCurrentUserId();
+        var isAdmin = _userService.IsCurrentUserAdmin();
+
+        if (currentUserId != userId && !isAdmin)
+        {
+            return new AuthServiceResult
+            {
+                ErrorCode = AuthErrorCode.Forbid,
+            };
+        }
+
+        var user = await _userManager.FindByIdAsync(userId);
+
+        var userDto = new UserDto
+        {
+            Id = user.Id,
+            Name = user.Name,
+            Email = user.Email,
+            PhoneNumber = user.PhoneNumber
+        };
+
+        return new AuthServiceResult
+        {
+            ErrorCode = AuthErrorCode.Success,
+            Result = userDto
+        };
+    }
+
     public async Task<AuthServiceResult> DeleteUserAsync(string userId)
     {
         var user = await _userManager.FindByIdAsync(userId);
 
-        if (user == null)
+        if (user is null)
         {
             return new AuthServiceResult
             {

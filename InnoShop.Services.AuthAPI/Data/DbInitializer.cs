@@ -17,7 +17,6 @@ public class DbInitializer : IDbInitializer
         _db = db;
         _userManager = userManager;
         _roleManager = roleManager;
-
     }
 
     public async Task InitializeAsync()

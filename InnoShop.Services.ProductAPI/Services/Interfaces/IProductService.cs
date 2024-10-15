@@ -8,7 +8,7 @@ namespace InnoShop.Services.ProductAPI.Services.Interfaces
         Task<ProductDto?> GetById(int id);
         Task<ProductDto?> GetByName(string name);
         Task<ProductDto[]> GetByCategory(string category);
-        Task<ProductDto> UpdateAsync(ProductDto productDto);
+        Task<ProductDto?> UpdateAsync(ProductDto productDto);
         Task<ProductDto> CreateAsync(ProductDto productDto);
         Task DeleteAsync(int id);
     }

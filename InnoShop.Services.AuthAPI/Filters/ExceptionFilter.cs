@@ -15,46 +15,39 @@ namespace InnoShop.Services.AuthAPI.Filters
         {
             var exception = context.Exception;
 
-            ResponseDto<AuthServiceResult> response;
+            ResponseDto response;
             HttpStatusCode statusCode;
 
             if (exception is DbUpdateException dbUpdateException)
             {
                 statusCode = HttpStatusCode.InternalServerError;
-                response = new ResponseDto<AuthServiceResult>
+                response = new ResponseDto
                 {
-                    IsSuccess = false,
                     Message = "An error occurred while updating the database.",
-                    Errors = new List<string> { dbUpdateException.InnerException?.Message ?? dbUpdateException.Message }
                 };
             }
             else if (exception is DbUpdateConcurrencyException)
             {
                 statusCode = HttpStatusCode.Conflict;
-                response = new ResponseDto<AuthServiceResult>
+                response = new ResponseDto
                 {
-                    IsSuccess = false,
                     Message = "A concurrency conflict occurred while updating the database.",
                 };
             }
             else if (exception is SqlException sqlException)
             {
                 statusCode = HttpStatusCode.InternalServerError;
-                response = new ResponseDto<AuthServiceResult>
+                response = new ResponseDto
                 {
-                    IsSuccess = false,
                     Message = "A database error occurred.",
-                    Errors = new List<string> { sqlException.Message }
                 };
             }
             else
             {               
                 statusCode = HttpStatusCode.InternalServerError;
-                response = new ResponseDto<AuthServiceResult>
+                response = new ResponseDto
                 {
-                    IsSuccess = false,
                     Message = "An unexpected error occurred.",
-                    Errors = new List<string> { exception.Message }
                 };
             }
 
