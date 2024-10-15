@@ -1,5 +1,4 @@
-﻿using InnoShop.Services.ProductAPI.Models;
-using InnoShop.Services.ProductAPI.Models.Dto;
+﻿using InnoShop.Services.ProductAPI.Models.Dto;
 using InnoShop.Services.ProductAPI.Services.Interfaces;
 using InnoShop.Services.ProductAPI.Utility;
 using Microsoft.AspNetCore.Authorization;

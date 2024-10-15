@@ -1,6 +1,7 @@
 ﻿using InnoShop.Services.AuthAPI.Models;
 using InnoShop.Services.AuthAPI.Models.Dto;
 using InnoShop.Services.AuthAPI.Services.Interfaces;
+using InnoShop.Services.AuthAPI.Utility;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
@@ -47,7 +48,7 @@ public class AuthService : IAuthService
             };
         }
 
-        var roleName = "User";
+        var roleName = Role.Admin;
 
         ApplicationUser applicationUser = new()
         {
@@ -71,12 +72,18 @@ public class AuthService : IAuthService
 
             await SendEmailConfirmationAsync(applicationUser.Email, emailMessageBuilder);
 
-            var userToReturn = await _userManager.FindByEmailAsync(applicationUser.Email.ToLower());
+            //var userToReturn = await _userManager.FindByEmailAsync(applicationUser.Email.ToLower());
+
+            var userDto = new UserDto
+            {
+                Email = applicationUser.Email,
+                Id = applicationUser.Id,
+            };
 
             return new AuthServiceResult
             {
                 ErrorCode = AuthErrorCode.Success,
-                Result = userToReturn
+                Result = userDto
             };
         }
 
@@ -425,7 +432,7 @@ public class AuthService : IAuthService
         return new AuthServiceResult
         {
             ErrorCode = AuthErrorCode.Success,
-            Result = user
+            Result = userDto
         };
     }
 

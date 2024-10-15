@@ -2,10 +2,10 @@
 
 namespace InnoShop.Services.AuthAPI.Models.Dto
 {
-    public class ResponseDto
+    public class ResponseDto<TResult>
     {
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public object? Result { get; set; }
+        public TResult? Result { get; set; }
 
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public object? Errors { get; set; }
@@ -16,6 +16,7 @@ namespace InnoShop.Services.AuthAPI.Models.Dto
         public string? Message { get; set; }
 
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public string? Token { get; set; } 
+        public string? Token { get; set; }
+        public List<Link> Links { get; set; }
     }
 }

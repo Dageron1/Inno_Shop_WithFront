@@ -4,13 +4,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
-using Microsoft.AspNetCore.Identity.Data;
-using InnoShop.Web.Utility;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using InnoShop.Web.Models.VM;
-using System.Reflection;
-using Microsoft.AspNetCore.Identity;
-using System.IdentityModel.Tokens.Jwt;
 using Microsoft.AspNetCore.Authorization;
 using Newtonsoft.Json;
 

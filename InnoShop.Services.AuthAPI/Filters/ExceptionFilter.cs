@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.Net;
 
 namespace InnoShop.Services.AuthAPI.Filters
 {
@@ -14,13 +15,13 @@ namespace InnoShop.Services.AuthAPI.Filters
         {
             var exception = context.Exception;
 
-            ResponseDto response;
-            int statusCode;
+            ResponseDto<AuthServiceResult> response;
+            HttpStatusCode statusCode;
 
             if (exception is DbUpdateException dbUpdateException)
             {
-                statusCode = 500;
-                response = new ResponseDto
+                statusCode = HttpStatusCode.InternalServerError;
+                response = new ResponseDto<AuthServiceResult>
                 {
                     IsSuccess = false,
                     Message = "An error occurred while updating the database.",
@@ -29,8 +30,8 @@ namespace InnoShop.Services.AuthAPI.Filters
             }
             else if (exception is DbUpdateConcurrencyException)
             {
-                statusCode = 409;
-                response = new ResponseDto
+                statusCode = HttpStatusCode.Conflict;
+                response = new ResponseDto<AuthServiceResult>
                 {
                     IsSuccess = false,
                     Message = "A concurrency conflict occurred while updating the database.",
@@ -38,8 +39,8 @@ namespace InnoShop.Services.AuthAPI.Filters
             }
             else if (exception is SqlException sqlException)
             {
-                statusCode = 500;
-                response = new ResponseDto
+                statusCode = HttpStatusCode.InternalServerError;
+                response = new ResponseDto<AuthServiceResult>
                 {
                     IsSuccess = false,
                     Message = "A database error occurred.",
@@ -48,8 +49,8 @@ namespace InnoShop.Services.AuthAPI.Filters
             }
             else
             {               
-                statusCode = 500;
-                response = new ResponseDto
+                statusCode = HttpStatusCode.InternalServerError;
+                response = new ResponseDto<AuthServiceResult>
                 {
                     IsSuccess = false,
                     Message = "An unexpected error occurred.",
@@ -59,7 +60,7 @@ namespace InnoShop.Services.AuthAPI.Filters
 
             context.Result = new ObjectResult(response)
             {
-                StatusCode = statusCode
+                StatusCode = (int)statusCode
             };
 
             context.ExceptionHandled = true;

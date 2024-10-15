@@ -1,7 +1,10 @@
-﻿namespace InnoShop.Services.AuthAPI.Services.Interfaces
+﻿using InnoShop.Services.AuthAPI.Models;
+
+namespace InnoShop.Services.AuthAPI.Services.Interfaces
 {
     public interface ILinkService
     {
-        List<object> GenerateLinks(int id);
+        List<Link> GenerateCommonEmailLinks(string email);
+        List<Link> GenerateLoginAndResetLinks();
     }
 }

@@ -16,7 +16,7 @@
                 var token = context.Request.Cookies["jwtToken"];
                 if (!string.IsNullOrEmpty(token))
                 {
-                    context.Request.Headers.Add("Authorization", $"Bearer {token}");
+                    context.Request.Headers.Append("Authorization", $"Bearer {token}");
                 }
             }
 

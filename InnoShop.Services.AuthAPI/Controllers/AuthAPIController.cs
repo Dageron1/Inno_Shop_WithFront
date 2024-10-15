@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
 using System.Security.Claims;
+using System.Web.Helpers;
 
 namespace InnoShop.Services.AuthAPI.Controllers;
 
@@ -27,7 +28,7 @@ public class AuthApiController : ControllerBase
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public async Task<ActionResult<ResponseDto>> Register([FromBody] RegistrationRequestDto requestModel) 
+    public async Task<ActionResult<ResponseDto<AuthServiceResult>>> Register([FromBody] RegistrationRequestDto requestModel) 
     {
         var emailMessageBuilder = CreateEmailConfirmationMessageBuilder();
 
@@ -35,23 +36,32 @@ public class AuthApiController : ControllerBase
 
         var responseDto = ConvertToResponseDto(authServiceResult);
 
-        if (authServiceResult.IsSuccess) 
+        if (responseDto.IsSuccess) 
         {
-            var user = responseDto.Result as UserDto;
-            return CreatedAtAction(nameof(GetUserById), new { id = user.Id }, responseDto.Result);
+            return StatusCode(201, new ResponseDto<AuthServiceResult>
+            {
+                Result = responseDto.Result,
+                Links = _linkService.GenerateCommonEmailLinks(requestModel.Email),
+            });
         }      
 
         if(authServiceResult.ErrorCode == AuthErrorCode.UserAlreadyExists)
         {
-            return Conflict(responseDto);
+            return Conflict(new ResponseDto<AuthServiceResult>
+            {
+                Message = responseDto.Message,
+                Errors = responseDto.Errors,
+                Links = _linkService.GenerateCommonEmailLinks(requestModel.Email),
+            });
         }
 
         return BadRequest(responseDto);
     }
 
     [HttpPost("users/resend-email-confirmation")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<ResponseDto>> SendEmailConfirmation([FromBody] EmailDto email) 
+    public async Task<ActionResult<ResponseDto<AuthServiceResult>>> SendEmailConfirmation([FromBody] EmailDto email) 
     {
         var emailMessageBuilder = CreateEmailConfirmationMessageBuilder();
 
@@ -61,15 +71,25 @@ public class AuthApiController : ControllerBase
 
         if (authServiceResult.IsSuccess)
         {
-            return Ok(responseDto);
+            return Ok(new ResponseDto<AuthServiceResult>
+            {
+                Message = responseDto.Message,
+                Links = _linkService.GenerateCommonEmailLinks(email.ToString()!),
+            });
         }
 
-        return BadRequest(responseDto);
+        return BadRequest(new ResponseDto<AuthServiceResult>
+        {
+            Message = responseDto.Message,
+            Errors = responseDto?.Errors,
+            Links = _linkService.GenerateCommonEmailLinks(email.ToString()!),
+        });
     }
 
     [HttpGet("users/confirm-email")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<ResponseDto>> ConfirmEmail(string token)
+    public async Task<ActionResult<ResponseDto<AuthServiceResult>>> ConfirmEmail(string token)
     {
         var authServiceResult = await _authService.ConfirmEmailAsync(token);
 
@@ -86,7 +106,7 @@ public class AuthApiController : ControllerBase
     [HttpPost("sessions")]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    public async Task<ActionResult<ResponseDto>> Login([FromBody] LoginRequestDto model) 
+    public async Task<ActionResult<ResponseDto<AuthServiceResult>>> Login([FromBody] LoginRequestDto model) 
     {
         var authServiceResult = await _authService.Login(model);
 
@@ -109,7 +129,7 @@ public class AuthApiController : ControllerBase
     [HttpPost("users/{id}/roles")]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public async Task<ActionResult<ResponseDto>> AddRoleToUser(Guid id, [FromBody] AddRoleRequestDto requestModel) 
+    public async Task<ActionResult<ResponseDto<AuthServiceResult>>> AddRoleToUser(Guid id, [FromBody] AddRoleRequestDto requestModel) 
     {
         var authServiceResult = await _authService.AssignRole(id.ToString(), requestModel.Role.ToUpper());
 
@@ -130,7 +150,7 @@ public class AuthApiController : ControllerBase
 
     [HttpPost("users/password/forgot")]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<ResponseDto>> ForgotPassword([FromBody] EmailDto model) 
+    public async Task<ActionResult<ResponseDto<AuthServiceResult>>> ForgotPassword([FromBody] EmailDto model) 
     {
         var emailMessageBuilder = CreatePasswordResetEmail();
 
@@ -148,11 +168,11 @@ public class AuthApiController : ControllerBase
 
     [HttpPost("users/password/reset")]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<ResponseDto>> ResetPassword([FromBody] ResetPasswordRequestDto model) 
+    public async Task<ActionResult<ResponseDto<AuthServiceResult>>> ResetPassword([FromBody] ResetPasswordRequestDto model) 
     {
         if (model == null || string.IsNullOrEmpty(model.Token) || string.IsNullOrEmpty(model.NewPassword))
         {
-            return BadRequest(new ResponseDto { IsSuccess = false, Message = "Invalid request." });
+            return BadRequest(new ResponseDto<AuthServiceResult> { IsSuccess = false, Message = "Invalid request." });
         }
 
         var authServiceResult = await _authService.ResetPasswordAsync(model.Email, model.Token, model.NewPassword);
@@ -170,13 +190,8 @@ public class AuthApiController : ControllerBase
     [Authorize]
     [HttpPost("users/password/change")]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<ResponseDto>> ChangePassword([FromBody] ChangePasswordDto model)
+    public async Task<ActionResult<ResponseDto<AuthServiceResult>>> ChangePassword([FromBody] ChangePasswordDto model)
     {
-        if (model == null || string.IsNullOrEmpty(model.CurrentPassword) || string.IsNullOrEmpty(model.NewPassword))
-        {
-            return BadRequest(new ResponseDto { IsSuccess = false, Message = "Invalid request." });
-        }
-
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
         var authServiceResult = await _authService.ChangePasswordAsync(model, userId);
@@ -195,7 +210,7 @@ public class AuthApiController : ControllerBase
     [HttpPut("users/{userId}")]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    public async Task<ActionResult<ResponseDto>> UpdateUser(Guid userId, [FromBody] UpdateUserDto model) 
+    public async Task<ActionResult<ResponseDto<AuthServiceResult>>> UpdateUser(Guid userId, [FromBody] UpdateUserDto model) 
     {
         var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
@@ -218,7 +233,7 @@ public class AuthApiController : ControllerBase
     [Authorize(Roles = Role.Admin)]
     [HttpGet("users/paginated")]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<ResponseDto>> GetUsersWithPagination([FromQuery] PaginationParams paginationParams) 
+    public async Task<ActionResult<ResponseDto<AuthServiceResult>>> GetUsersWithPagination([FromQuery] PaginationParams paginationParams) 
     {
         var authServiceResult = await _authService.GetUsersWithPaginationAsync(paginationParams);
 
@@ -235,7 +250,7 @@ public class AuthApiController : ControllerBase
     [Authorize(Roles = Role.Admin)]
     [HttpPost("users/by-email")]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<ResponseDto>> GetUserByEmail([FromBody] EmailDto email) 
+    public async Task<ActionResult<ResponseDto<AuthServiceResult>>> GetUserByEmail([FromBody] EmailDto email) 
     {
         var authServiceResult = await _authService.GetUserByEmailAsync(email.Email);
 
@@ -253,7 +268,7 @@ public class AuthApiController : ControllerBase
     [HttpGet("users/{userId}")]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    public async Task<ActionResult<ResponseDto>> GetUserById(Guid userId)
+    public async Task<ActionResult<ResponseDto<AuthServiceResult>>> GetUserById(Guid userId)
     {
         var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
@@ -278,7 +293,7 @@ public class AuthApiController : ControllerBase
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public async Task<ActionResult<ResponseDto>> DeleteUser(Guid userId) 
+    public async Task<ActionResult<ResponseDto<AuthServiceResult>>> DeleteUser(Guid userId) 
     {
         var authServiceResult = await _authService.DeleteUserAsync(userId.ToString());
 
@@ -317,14 +332,15 @@ public class AuthApiController : ControllerBase
         };
     }
 
-    private ResponseDto ConvertToResponseDto(AuthServiceResult authServiceResult) 
-    { 
-        return new ResponseDto 
+    private ResponseDto<AuthServiceResult> ConvertToResponseDto(AuthServiceResult authServiceResult) 
+    {
+        var result = authServiceResult.Result as AuthServiceResult;
+        return new ResponseDto<AuthServiceResult> 
         { 
             IsSuccess = authServiceResult.IsSuccess, 
             Token = authServiceResult.Token,
             Errors = authServiceResult.Errors,
-            Result = authServiceResult.Result,
+            Result = result ?? new AuthServiceResult(),
             Message = authServiceResult.ErrorCode switch 
             {
                 AuthErrorCode.Success => "Success.",
@@ -341,5 +357,6 @@ public class AuthApiController : ControllerBase
                 AuthErrorCode.InvalidData => "Invalid data.",
                 AuthErrorCode.Conflict => "Error caused by data conflict.",
                 _ => throw new ArgumentException() } 
-        }; }
+        }; 
+    }
 }
