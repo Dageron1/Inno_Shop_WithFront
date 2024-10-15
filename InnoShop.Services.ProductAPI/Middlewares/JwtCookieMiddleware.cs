@@ -1,4 +1,4 @@
-﻿namespace InnoShop.Services.ProductAPI.Extensions;
+﻿namespace InnoShop.Services.ProductAPI.Middlewares;
 
 public class JwtCookieMiddleware
 {

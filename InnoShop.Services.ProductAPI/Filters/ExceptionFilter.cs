@@ -25,6 +25,11 @@ namespace InnoShop.Services.ProductAPI.Filters
                 statusCode = HttpStatusCode.Conflict;
                 message = "A concurrency conflict occurred while updating the database.";
             }
+            else if (exception is UnauthorizedAccessException)
+            {
+                statusCode = HttpStatusCode.Forbidden;
+                message = "You do not have permission to update this product.";
+            }
             else if (exception is SqlException sqlException)
             {
                 statusCode = HttpStatusCode.InternalServerError;

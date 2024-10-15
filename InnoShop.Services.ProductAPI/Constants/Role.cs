@@ -1,6 +1,5 @@
-﻿namespace InnoShop.Services.ProductAPI.Utility
+﻿namespace InnoShop.Services.ProductAPI.Constants
 {
-    //лучше создать папку Constants
     public static class Role
     {
         public const string Admin = "ADMIN";
